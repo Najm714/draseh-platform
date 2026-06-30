@@ -1,0 +1,12 @@
+### 1. تسجيل الدخول
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "ahmed@example.com",
+    "password": "123456789"
+}
+
+### 2. جلب الطلبات (استخدم التوكن من الخطوة السابقة)
+GET http://localhost:5000/api/orders
+Authorization: Bearer YOUR_TOKEN_HERE

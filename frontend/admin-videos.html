@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الفيديوهات - منصة ارتقاء</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #7C3AED;
+            --primary-dark: #6D28D9;
+            --primary-light: #8B5CF6;
+            --secondary: #EC4899;
+            --secondary-dark: #DB2777;
+            --accent: #F59E0B;
+            --dark: #0F172A;
+            --dark-light: #1E293B;
+            --light: #F8FAFC;
+            --gray: #64748B;
+            --white: #FFFFFF;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 20px 60px rgba(124, 58, 237, 0.2);
+            --radius: 20px;
+            --bg-body: #F1F5F9;
+            --bg-card: #FFFFFF;
+            --text-color: #0F172A;
+            --text-muted: #64748B;
+            --border-color: #E2E8F0;
+            --gradient-main: linear-gradient(135deg, #7C3AED, #EC4899);
+            --gradient-secondary: linear-gradient(135deg, #F59E0B, #EC4899);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-color);
+            direction: rtl;
+        }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+
+        /* الهيدر */
+        .admin-header {
+            background: var(--dark);
+            color: #fff;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .admin-header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .admin-header .logo {
+            font-size: 1.8rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #fff;
+        }
+        .admin-header .logo span {
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .admin-header .logo i { color: var(--primary); animation: logoFloat 3s ease-in-out infinite; }
+        @keyframes logoFloat { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-5px) rotate(-5deg); } }
+
+        .admin-header .header-actions { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .admin-header .btn-back {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .admin-header .btn-back:hover { background: rgba(255,255,255,0.2); }
+        .admin-header .btn-danger {
+            background: #EF4444;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 50px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+        }
+        .admin-header .btn-danger:hover { background: #DC2626; }
+
+        /* المحتوى */
+        .dashboard-content { padding: 30px 0; }
+        .dashboard-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        .dashboard-title h1 { font-size: 2rem; color: var(--text-color); }
+        .dashboard-title h1 span {
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* نموذج رفع الفيديو */
+        .upload-section {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+        }
+        .upload-section h3 {
+            font-size: 1.4rem;
+            color: var(--text-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .upload-section h3 i { color: var(--primary); }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group.full-width { grid-column: span 2; }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+        .form-group label .required { color: #EF4444; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+            background: var(--bg-body);
+            color: var(--text-color);
+            transition: 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(124,58,237,0.1);
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .form-group select option { padding: 10px; }
+
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius);
+            padding: 30px 20px;
+            text-align: center;
+            transition: 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+        .upload-area:hover { border-color: var(--primary); background: rgba(124,58,237,0.05); }
+        .upload-area i { font-size: 3rem; color: var(--primary); opacity: 0.5; display: block; margin-bottom: 10px; }
+        .upload-area h4 { font-size: 1.1rem; color: var(--text-color); }
+        .upload-area p { color: var(--text-muted); font-size: 0.9rem; }
+        .upload-area input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--gradient-main);
+            color: #fff;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: 'Cairo', sans-serif;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(124,58,237,0.3); }
+        .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        /* قائمة الفيديوهات */
+        .videos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+        }
+        .video-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            border-right: 4px solid var(--primary);
+            transition: 0.3s;
+            border: 1px solid var(--border-color);
+        }
+        .video-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); }
+        .video-card .video-icon { font-size: 2.5rem; color: var(--primary); margin-bottom: 10px; }
+        .video-card h4 { color: var(--text-color); margin-bottom: 5px; font-size: 1.1rem; }
+        .video-card p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .video-card .video-meta {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.8rem; color: var(--text-muted); flex-wrap: wrap; gap: 5px;
+        }
+        .video-card .video-meta .subject-tag {
+            background: rgba(124,58,237,0.1);
+            color: var(--primary);
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .video-card .video-meta .uni-tag {
+            background: rgba(245,158,11,0.1);
+            color: var(--accent);
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .video-card .video-actions {
+            display: flex; gap: 10px; margin-top: 15px;
+        }
+        .video-card .video-actions button {
+            flex: 1; padding: 8px; border: none; border-radius: 8px;
+            cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 600;
+            transition: 0.3s;
+        }
+        .video-card .video-actions .btn-play {
+            background: var(--gradient-secondary); color: #fff;
+        }
+        .video-card .video-actions .btn-play:hover { transform: scale(1.02); }
+        .video-card .video-actions .btn-delete {
+            background: #EF4444; color: #fff;
+        }
+        .video-card .video-actions .btn-delete:hover { background: #DC2626; }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); grid-column: 1/-1; }
+        .empty-state i { font-size: 4rem; display: block; margin-bottom: 15px; opacity: 0.3; }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .alert.show { display: block; animation: slideDown 0.4s ease; }
+        .alert-success { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; }
+        .alert-danger { background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .loading-text { text-align: center; padding: 60px; color: var(--text-muted); grid-column: 1/-1; }
+        .loading-text i { font-size: 3rem; display: block; margin-bottom: 15px; }
+
+        .file-info {
+            display: none;
+            margin-top: 10px;
+            padding: 12px 15px;
+            background: var(--bg-body);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .file-info.show { display: flex; align-items: center; gap: 10px; }
+        .file-info i { color: var(--primary); font-size: 1.5rem; }
+        .file-info .file-name { font-weight: 600; }
+        .file-info .file-size { color: var(--text-muted); margin-right: 10px; }
+
+        .filter-section {
+            background: var(--bg-card);
+            padding: 15px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-section select {
+            padding: 8px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-color);
+            min-width: 150px;
+        }
+        .filter-section select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        @media (max-width: 768px) {
+            .admin-header .container { flex-direction: column; gap: 15px; text-align: center; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width { grid-column: span 1; }
+            .videos-grid { grid-template-columns: 1fr; }
+            .filter-section { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <header class="admin-header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-rocket"></i>
+                منصة <span>ارتقاء</span>
+                <span style="font-size:0.8rem; background:var(--primary); padding:2px 12px; border-radius:50px;">فيديوهات</span>
+            </a>
+            <div class="header-actions">
+                <a href="explanations.html" class="btn-back">
+                    <i class="fas fa-arrow-right"></i> العودة للشروحات
+                </a>
+                <a href="index.html" class="btn-back">
+                    <i class="fas fa-home"></i> الرئيسية
+                </a>
+                <button onclick="logout()" class="btn-danger">
+                    <i class="fas fa-sign-out-alt"></i> خروج
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- المحتوى -->
+    <main class="dashboard-content">
+        <div class="container">
+
+            <div class="dashboard-title">
+                <h1>📹 <span>إدارة الفيديوهات</span></h1>
+                <p style="color:var(--text-muted);">رفع وإدارة فيديوهات المواد التعليمية</p>
+            </div>
+
+            <div id="alertMessage" class="alert"></div>
+
+            <!-- نموذج رفع الفيديو -->
+            <div class="upload-section">
+                <h3><i class="fas fa-cloud-upload-alt"></i> رفع فيديو جديد</h3>
+                <form id="uploadForm">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <div class="upload-area" id="uploadArea">
+                                <i class="fas fa-video"></i>
+                                <h4>اسحب ملف الفيديو هنا أو انقر للاختيار</h4>
+                                <p>يدعم الصيغ: MP4, WebM, OGG, AVI, MKV (حد أقصى 500 ميجابايت)</p>
+                                <input type="file" id="videoInput" accept="video/*" required>
+                            </div>
+                            <div class="file-info" id="fileInfo">
+                                <i class="fas fa-file-video"></i>
+                                <span class="file-name" id="fileName"></span>
+                                <span class="file-size" id="fileSize"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>عنوان الفيديو <span class="required">*</span></label>
+                            <input type="text" id="videoTitle" placeholder="مثال: شرح درس التفاضل" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>الجامعة <span class="required">*</span></label>
+                            <select id="universitySelect" required>
+                                <option value="">اختر الجامعة</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>التخصص <span class="required">*</span></label>
+                            <select id="specialtySelect" required disabled>
+                                <option value="">اختر التخصص أولاً</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>المادة <span class="required">*</span></label>
+                            <select id="subjectSelect" required disabled>
+                                <option value="">اختر المادة</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>وصف الفيديو</label>
+                            <textarea id="videoDescription" placeholder="وصف مختصر لمحتوى الفيديو..."></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        <i class="fas fa-upload"></i> رفع الفيديو
+                    </button>
+                </form>
+            </div>
+
+            <!-- فلتر الفيديوهات -->
+            <div class="filter-section">
+                <label style="font-weight:600; color:var(--text-color);">🔍 فلتر حسب الجامعة:</label>
+                <select id="filterUniversity" onchange="filterVideos()">
+                    <option value="all">جميع الجامعات</option>
+                </select>
+                <select id="filterSpecialty" onchange="filterVideos()">
+                    <option value="all">جميع التخصصات</option>
+                </select>
+                <select id="filterSubject" onchange="filterVideos()">
+                    <option value="all">جميع المواد</option>
+                </select>
+            </div>
+
+            <!-- قائمة الفيديوهات -->
+            <h3 style="font-size:1.3rem; color:var(--text-color); margin-bottom:20px;">
+                <i class="fas fa-list" style="color:var(--primary);"></i> الفيديوهات المرفوعة
+                <span style="font-size:0.9rem; color:var(--text-muted); font-weight:400;" id="videosCount">(0 فيديو)</span>
+            </h3>
+
+            <div class="videos-grid" id="videosGrid">
+                <div class="loading-text">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    جاري تحميل الفيديوهات...
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // ============================================================
+        // البيانات - جميع الجامعات والتخصصات والمواد
+        // ============================================================
+        const universitiesData = [{
+            id: 'ksu',
+            name: 'جامعة الملك سعود',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'ksu-engineering',
+                name: 'الهندسة',
+                subjects: [
+                    { id: 1, title: 'رياضيات ١', code: 'MATH-101' },
+                    { id: 2, title: 'الفيزياء العامة', code: 'PHYS-201' },
+                    { id: 3, title: 'الكيمياء العامة', code: 'CHEM-101' },
+                    { id: 4, title: 'ميكانيكا الموائع', code: 'ME-301' },
+                    { id: 5, title: 'الدوائر الكهربائية', code: 'EE-201' },
+                    { id: 6, title: 'مقاومة المواد', code: 'CE-205' },
+                    { id: 7, title: 'الرسم الهندسي', code: 'ENG-101' }
+                ]
+            }, {
+                id: 'ksu-medicine',
+                name: 'الطب',
+                subjects: [
+                    { id: 8, title: 'تشريح الإنسان', code: 'MED-101' },
+                    { id: 9, title: 'علم الأدوية', code: 'MED-210' },
+                    { id: 10, title: 'علم الأمراض', code: 'MED-305' },
+                    { id: 11, title: 'الفسيولوجيا', code: 'MED-202' },
+                    { id: 12, title: 'الجراحة العامة', code: 'MED-401' },
+                    { id: 13, title: 'طب الأطفال', code: 'MED-405' }
+                ]
+            }, {
+                id: 'ksu-business',
+                name: 'إدارة الأعمال',
+                subjects: [
+                    { id: 14, title: 'مبادئ الإدارة', code: 'BUS-201' },
+                    { id: 15, title: 'التسويق الرقمي', code: 'MKT-301' },
+                    { id: 16, title: 'المحاسبة المالية', code: 'ACC-101' },
+                    { id: 17, title: 'الاقتصاد الإداري', code: 'ECO-201' }
+                ]
+            }, {
+                id: 'ksu-cs',
+                name: 'علوم الحاسوب',
+                subjects: [
+                    { id: 18, title: 'برمجة ١', code: 'CS-101' },
+                    { id: 19, title: 'هياكل البيانات', code: 'CS-201' },
+                    { id: 20, title: 'قواعد البيانات', code: 'CS-301' },
+                    { id: 21, title: 'الذكاء الاصطناعي', code: 'CS-405' }
+                ]
+            }, {
+                id: 'ksu-law',
+                name: 'القانون',
+                subjects: [
+                    { id: 22, title: 'النظام القانوني السعودي', code: 'LAW-101' },
+                    { id: 23, title: 'القانون التجاري', code: 'LAW-201' },
+                    { id: 24, title: 'قانون العمل', code: 'LAW-305' }
+                ]
+            }]
+        }, {
+            id: 'kau',
+            name: 'جامعة الملك عبدالعزيز',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'kau-engineering',
+                name: 'الهندسة',
+                subjects: [
+                    { id: 25, title: 'رياضيات ٢', code: 'MATH-102' },
+                    { id: 26, title: 'فيزياء ٢', code: 'PHYS-202' },
+                    { id: 27, title: 'ديناميكا حرارية', code: 'ME-201' }
+                ]
+            }, {
+                id: 'kau-medicine',
+                name: 'الطب',
+                subjects: [
+                    { id: 28, title: 'الأشعة التشخيصية', code: 'MED-310' },
+                    { id: 29, title: 'الجراحة العامة', code: 'MED-401' }
+                ]
+            }, {
+                id: 'kau-business',
+                name: 'إدارة الأعمال',
+                subjects: [
+                    { id: 30, title: 'إدارة الموارد البشرية', code: 'HRM-301' },
+                    { id: 31, title: 'ريادة الأعمال', code: 'ENT-101' }
+                ]
+            }, {
+                id: 'kau-pharmacy',
+                name: 'الصيدلة',
+                subjects: [
+                    { id: 32, title: 'الصيدلة العامة', code: 'PHR-101' },
+                    { id: 33, title: 'الصيدلة السريرية', code: 'PHR-301' }
+                ]
+            }]
+        }, {
+            id: 'kfupm',
+            name: 'جامعة الملك فهد للبترول والمعادن',
+            icon: 'fa-industry',
+            specialties: [{
+                id: 'kfupm-engineering',
+                name: 'الهندسة',
+                subjects: [
+                    { id: 34, title: 'هندسة البترول', code: 'PE-301' },
+                    { id: 35, title: 'هندسة كيميائية', code: 'CHE-201' },
+                    { id: 36, title: 'هندسة كهربائية', code: 'EE-301' }
+                ]
+            }, {
+                id: 'kfupm-cs',
+                name: 'علوم الحاسوب',
+                subjects: [
+                    { id: 37, title: 'شبكات الحاسوب', code: 'CS-303' },
+                    { id: 38, title: 'أمن المعلومات', code: 'CS-401' }
+                ]
+            }]
+        }, {
+            id: 'pu',
+            name: 'جامعة الأميرة نورة بنت عبدالرحمن',
+            icon: 'fa-female',
+            specialties: [{
+                id: 'pu-education',
+                name: 'التربية',
+                subjects: [
+                    { id: 39, title: 'علم النفس التربوي', code: 'EDU-201' },
+                    { id: 40, title: 'طرق التدريس', code: 'EDU-301' },
+                    { id: 41, title: 'المناهج وطرق التدريس', code: 'EDU-401' }
+                ]
+            }, {
+                id: 'pu-business',
+                name: 'إدارة الأعمال',
+                subjects: [
+                    { id: 42, title: 'إدارة الجودة الشاملة', code: 'QM-201' },
+                    { id: 43, title: 'القيادة الإدارية', code: 'LDR-301' }
+                ]
+            }, {
+                id: 'pu-cs',
+                name: 'علوم الحاسوب',
+                subjects: [
+                    { id: 44, title: 'برمجة ٢', code: 'CS-102' },
+                    { id: 45, title: 'نظم التشغيل', code: 'CS-304' }
+                ]
+            }]
+        }, {
+            id: 'iau',
+            name: 'جامعة الإمام عبدالرحمن بن فيصل',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'iau-medicine',
+                name: 'الطب',
+                subjects: [
+                    { id: 46, title: 'طب الأسرة', code: 'MED-410' },
+                    { id: 47, title: 'الأمراض الباطنية', code: 'MED-501' }
+                ]
+            }, {
+                id: 'iau-dentistry',
+                name: 'طب الأسنان',
+                subjects: [
+                    { id: 48, title: 'تشريح الأسنان', code: 'DEN-101' },
+                    { id: 49, title: 'جراحة الفم والأسنان', code: 'DEN-401' },
+                    { id: 50, title: 'تقويم الأسنان', code: 'DEN-501' }
+                ]
+            }, {
+                id: 'iau-engineering',
+                name: 'الهندسة',
+                subjects: [
+                    { id: 51, title: 'هندسة مدنية', code: 'CE-301' }
+                ]
+            }]
+        }, {
+            id: 'kaust',
+            name: 'جامعة الملك عبدالله للعلوم والتقنية',
+            icon: 'fa-flask',
+            specialties: [{
+                id: 'kaust-science',
+                name: 'العلوم',
+                subjects: [
+                    { id: 52, title: 'الكيمياء المتقدمة', code: 'CHEM-501' },
+                    { id: 53, title: 'الفيزياء الكمية', code: 'PHYS-501' }
+                ]
+            }, {
+                id: 'kaust-engineering',
+                name: 'الهندسة',
+                subjects: [
+                    { id: 54, title: 'الهندسة الجزيئية', code: 'MSE-501' }
+                ]
+            }]
+        }, {
+            id: 'qu',
+            name: 'جامعة القصيم',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'qu-science',
+                name: 'العلوم',
+                subjects: [
+                    { id: 57, title: 'الرياضيات التطبيقية', code: 'MATH-301' },
+                    { id: 58, title: 'الإحصاء التطبيقي', code: 'STAT-201' }
+                ]
+            }, {
+                id: 'qu-education',
+                name: 'التربية',
+                subjects: [
+                    { id: 59, title: 'الإدارة التربوية', code: 'EDU-501' }
+                ]
+            }]
+        }, {
+            id: 'tu',
+            name: 'جامعة الطائف',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'tu-science',
+                name: 'العلوم',
+                subjects: [
+                    { id: 60, title: 'الفيزياء التطبيقية', code: 'PHYS-301' }
+                ]
+            }, {
+                id: 'tu-engineering',
+                name: 'الهندسة',
+                subjects: [
+                    { id: 61, title: 'هندسة اتصالات', code: 'CE-401' }
+                ]
+            }]
+        }, {
+            id: 'kku',
+            name: 'جامعة الملك خالد',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'kku-science',
+                name: 'العلوم',
+                subjects: [
+                    { id: 62, title: 'الكيمياء البيئية', code: 'CHEM-401' }
+                ]
+            }, {
+                id: 'kku-law',
+                name: 'القانون',
+                subjects: [
+                    { id: 63, title: 'القانون الدولي', code: 'LAW-501' }
+                ]
+            }]
+        }, {
+            id: 'iu',
+            name: 'الجامعة الإسلامية بالمدينة المنورة',
+            icon: 'fa-mosque',
+            specialties: [{
+                id: 'iu-sharia',
+                name: 'الشريعة',
+                subjects: [
+                    { id: 64, title: 'أصول الفقه', code: 'SHAR-101' },
+                    { id: 65, title: 'التفسير', code: 'SHAR-201' }
+                ]
+            }]
+        }, {
+            id: 'um',
+            name: 'جامعة أم القرى',
+            icon: 'fa-kaaba',
+            specialties: [{
+                id: 'um-sharia',
+                name: 'الشريعة',
+                subjects: [
+                    { id: 66, title: 'الحديث النبوي', code: 'SHAR-301' },
+                    { id: 67, title: 'الفقه المقارن', code: 'SHAR-401' }
+                ]
+            }, {
+                id: 'um-business',
+                name: 'إدارة الأعمال',
+                subjects: [
+                    { id: 68, title: 'الاقتصاد الإسلامي', code: 'ECO-301' }
+                ]
+            }]
+        }, {
+            id: 'ju',
+            name: 'جامعة الجوف',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'ju-science',
+                name: 'العلوم',
+                subjects: [
+                    { id: 69, title: 'الجيولوجيا', code: 'GEO-201' }
+                ]
+            }]
+        }, {
+            id: 'bu',
+            name: 'جامعة الباحة',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'bu-science',
+                name: 'العلوم',
+                subjects: [
+                    { id: 70, title: 'البيولوجيا', code: 'BIO-201' }
+                ]
+            }]
+        }, {
+            id: 'nu',
+            name: 'جامعة نجران',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'nu-science',
+                name: 'العلوم',
+                subjects: [
+                    { id: 71, title: 'الفلك', code: 'AST-201' }
+                ]
+            }]
+        }, {
+            id: 'nbu',
+            name: 'جامعة الحدود الشمالية',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'nbu-science',
+                name: 'العلوم',
+                subjects: [
+                    { id: 72, title: 'المناخ', code: 'CLI-201' }
+                ]
+            }]
+        }, {
+            id: 'psau',
+            name: 'جامعة الأمير سطام بن عبدالعزيز',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'psau-science',
+                name: 'العلوم',
+                subjects: [
+                    { id: 73, title: 'الرياضيات البحتة', code: 'MATH-401' }
+                ]
+            }]
+        }, {
+            id: 'seu',
+            name: 'الجامعة السعودية الإلكترونية',
+            icon: 'fa-laptop',
+            specialties: [{
+                id: 'seu-cs',
+                name: 'علوم الحاسوب',
+                subjects: [
+                    { id: 74, title: 'التعلم الإلكتروني', code: 'ELE-201' },
+                    { id: 75, title: 'الأمن السيبراني', code: 'SEC-301' }
+                ]
+            }, {
+                id: 'seu-business',
+                name: 'إدارة الأعمال',
+                subjects: [
+                    { id: 76, title: 'التسويق الإلكتروني', code: 'MKT-401' }
+                ]
+            }]
+        }, {
+            id: 'hbu',
+            name: 'جامعة حفر الباطن',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'hbu-science',
+                name: 'العلوم',
+                subjects: [
+                    { id: 77, title: 'علوم الأرض', code: 'GEO-101' }
+                ]
+            }]
+        }, {
+            id: 'tu-2',
+            name: 'جامعة تبوك',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'tu-science-2',
+                name: 'العلوم',
+                subjects: [
+                    { id: 78, title: 'البيئة', code: 'ENV-201' }
+                ]
+            }]
+        }, {
+            id: 'ju-2',
+            name: 'جامعة جازان',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'ju-medicine-2',
+                name: 'الطب',
+                subjects: [
+                    { id: 79, title: 'الصحة العامة', code: 'PH-201' }
+                ]
+            }]
+        }, {
+            id: 'hu',
+            name: 'جامعة حائل',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'hu-science',
+                name: 'العلوم',
+                subjects: [
+                    { id: 80, title: 'الكيمياء الحيوية', code: 'BCH-301' }
+                ]
+            }]
+        }, {
+            id: 'arar',
+            name: 'جامعة عرعر',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'arar-science',
+                name: 'العلوم',
+                subjects: [
+                    { id: 81, title: 'الزراعة', code: 'AGR-201' }
+                ]
+            }]
+        }, {
+            id: 'shaqra',
+            name: 'جامعة شقراء',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'shaqra-science',
+                name: 'العلوم',
+                subjects: [
+                    { id: 82, title: 'الفلك', code: 'AST-101' }
+                ]
+            }]
+        }, {
+            id: 'majmaah',
+            name: 'جامعة المجمعة',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'majmaah-science',
+                name: 'العلوم',
+                subjects: [
+                    { id: 83, title: 'الفيزياء الطبية', code: 'MP-201' }
+                ]
+            }]
+        }, {
+            id: 'bisha',
+            name: 'جامعة بيشة',
+            icon: 'fa-university',
+            specialties: [{
+                id: 'bisha-science',
+                name: 'العلوم',
+                subjects: [
+                    { id: 84, title: 'الجيولوجيا', code: 'GEO-301' }
+                ]
+            }]
+        }, {
+            id: 'jubail',
+            name: 'الكلية الجامعية بالجبيل',
+            icon: 'fa-industry',
+            specialties: [{
+                id: 'jubail-engineering',
+                name: 'الهندسة',
+                subjects: [
+                    { id: 85, title: 'هندسة صناعية', code: 'IE-301' }
+                ]
+            }]
+        }, {
+            id: 'yanbu',
+            name: 'الكلية الجامعية بينبع',
+            icon: 'fa-industry',
+            specialties: [{
+                id: 'yanbu-engineering',
+                name: 'الهندسة',
+                subjects: [
+                    { id: 86, title: 'هندسة بحرية', code: 'ME-501' }
+                ]
+            }]
+        }];
+
+        // ============================================================
+        // إنشاء خريطة سريعة للبحث عن المواد
+        // ============================================================
+        const subjectMap = {};
+        universitiesData.forEach(uni => {
+            uni.specialties.forEach(spec => {
+                spec.subjects.forEach(sub => {
+                    subjectMap[sub.id] = {
+                        ...sub,
+                        specialty: spec.name,
+                        specialtyId: spec.id,
+                        university: uni.name,
+                        universityId: uni.id
+                    };
+                });
+            });
+        });
+
+        // ============================================================
+        // المتغيرات
+        // ============================================================
+        let currentToken = localStorage.getItem('token') || '';
+        let currentUser = null;
+        let allVideos = [];
+        let filteredVideos = [];
+
+        // ============================================================
+        // التحقق من تسجيل الدخول
+        // ============================================================
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const userData = localStorage.getItem('user');
+
+            if (!token || !userData) {
+                window.location.href = 'index.html';
+                return false;
+            }
+
+            try {
+                const user = JSON.parse(userData);
+                if (user.role !== 'admin') {
+                    alert('⚠️ هذه الصفحة مخصصة للمديرين فقط');
+                    window.location.href = 'index.html';
+                    return false;
+                }
+                currentToken = token;
+                currentUser = user;
+                return true;
+            } catch (error) {
+                console.error('❌ خطأ:', error);
+                window.location.href = 'index.html';
+                return false;
+            }
+        }
+
+        // ============================================================
+        // تسجيل الخروج
+        // ============================================================
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        // ============================================================
+        // عرض رسائل التنبيه
+        // ============================================================
+        function showAlert(message, type = 'success') {
+            const alertEl = document.getElementById('alertMessage');
+            alertEl.textContent = message;
+            alertEl.className = `alert alert-${type} show`;
+            setTimeout(() => {
+                alertEl.classList.remove('show');
+            }, 5000);
+        }
+
+        // ============================================================
+        // تعبئة قائمة الجامعات
+        // ============================================================
+        function populateUniversitySelects() {
+            const selects = ['universitySelect', 'filterUniversity'];
+            selects.forEach(id => {
+                const select = document.getElementById(id);
+                if (!select) return;
+                // حفظ القيمة المحددة
+                const currentVal = select.value;
+                // مسح الخيارات مع الاحتفاظ بالخيار الأول
+                while (select.options.length > 1) {
+                    select.remove(1);
+                }
+                // إضافة الجامعات
+                universitiesData.forEach(uni => {
+                    const option = document.createElement('option');
+                    option.value = uni.id;
+                    option.textContent = uni.name;
+                    select.appendChild(option);
+                });
+                // استعادة القيمة المحددة
+                if (currentVal && [...select.options].some(opt => opt.value === currentVal)) {
+                    select.value = currentVal;
+                }
+            });
+        }
+
+        // ============================================================
+        // تعبئة قائمة التخصصات
+        // ============================================================
+        function populateSpecialtySelects(universityId) {
+            const uni = universitiesData.find(u => u.id === universityId);
+            const selects = ['specialtySelect', 'filterSpecialty'];
+            
+            selects.forEach(id => {
+                const select = document.getElementById(id);
+                if (!select) return;
+                const currentVal = select.value;
+                while (select.options.length > 1) {
+                    select.remove(1);
+                }
+                if (uni) {
+                    uni.specialties.forEach(spec => {
+                        const option = document.createElement('option');
+                        option.value = spec.id;
+                        option.textContent = spec.name;
+                        select.appendChild(option);
+                    });
+                    select.disabled = false;
+                } else {
+                    select.disabled = true;
+                }
+                if (currentVal && [...select.options].some(opt => opt.value === currentVal)) {
+                    select.value = currentVal;
+                }
+            });
+
+            // تفعيل/تعطيل قائمة المواد
+            const specSelect = document.getElementById('specialtySelect');
+            const subjectSelect = document.getElementById('subjectSelect');
+            if (specSelect.value) {
+                populateSubjectSelects(universityId, specSelect.value);
+                subjectSelect.disabled = false;
+            } else {
+                while (subjectSelect.options.length > 1) {
+                    subjectSelect.remove(1);
+                }
+                subjectSelect.disabled = true;
+            }
+        }
+
+        // ============================================================
+        // تعبئة قائمة المواد
+        // ============================================================
+        function populateSubjectSelects(universityId, specialtyId) {
+            const uni = universitiesData.find(u => u.id === universityId);
+            const spec = uni ? uni.specialties.find(s => s.id === specialtyId) : null;
+            const selects = ['subjectSelect', 'filterSubject'];
+            
+            selects.forEach(id => {
+                const select = document.getElementById(id);
+                if (!select) return;
+                const currentVal = select.value;
+                while (select.options.length > 1) {
+                    select.remove(1);
+                }
+                if (spec) {
+                    spec.subjects.forEach(sub => {
+                        const option = document.createElement('option');
+                        option.value = sub.id;
+                        option.textContent = `${sub.title} (${sub.code})`;
+                        select.appendChild(option);
+                    });
+                    select.disabled = false;
+                } else {
+                    select.disabled = true;
+                }
+                if (currentVal && [...select.options].some(opt => opt.value === currentVal)) {
+                    select.value = currentVal;
+                }
+            });
+        }
+
+        // ============================================================
+        // أحداث القوائم المنسدلة
+        // ============================================================
+        document.getElementById('universitySelect').addEventListener('change', function() {
+            const uniId = this.value;
+            populateSpecialtySelects(uniId);
+            // إعادة تعيين قائمة المواد
+            const subjectSelect = document.getElementById('subjectSelect');
+            while (subjectSelect.options.length > 1) {
+                subjectSelect.remove(1);
+            }
+            subjectSelect.disabled = true;
+        });
+
+        document.getElementById('specialtySelect').addEventListener('change', function() {
+            const uniId = document.getElementById('universitySelect').value;
+            const specId = this.value;
+            if (uniId && specId) {
+                populateSubjectSelects(uniId, specId);
+                document.getElementById('subjectSelect').disabled = false;
+            } else {
+                const subjectSelect = document.getElementById('subjectSelect');
+                while (subjectSelect.options.length > 1) {
+                    subjectSelect.remove(1);
+                }
+                subjectSelect.disabled = true;
+            }
+        });
+
+        // ============================================================
+        // معالجة رفع الفيديو
+        // ============================================================
+        const uploadArea = document.getElementById('uploadArea');
+        const videoInput = document.getElementById('videoInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--secondary)';
+            this.style.background = 'rgba(0,201,167,0.05)';
+        });
+
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--border-color)';
+            this.style.background = 'transparent';
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--border-color)';
+            this.style.background = 'transparent';
+            if (e.dataTransfer.files.length) {
+                videoInput.files = e.dataTransfer.files;
+                updateFileInfo(e.dataTransfer.files[0]);
+            }
+        });
+
+        videoInput.addEventListener('change', function() {
+            if (this.files.length) {
+                updateFileInfo(this.files[0]);
+            }
+        });
+
+        function updateFileInfo(file) {
+            fileInfo.classList.add('show');
+            fileName.textContent = file.name;
+            fileSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+
+        // ============================================================
+        // إرسال نموذج رفع الفيديو
+        // ============================================================
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const title = document.getElementById('videoTitle').value.trim();
+            const universityId = document.getElementById('universitySelect').value;
+            const specialtyId = document.getElementById('specialtySelect').value;
+            const subjectId = document.getElementById('subjectSelect').value;
+            const description = document.getElementById('videoDescription').value.trim();
+            const file = videoInput.files[0];
+
+            if (!title || !universityId || !specialtyId || !subjectId || !file) {
+                showAlert('❌ يرجى ملء جميع الحقول المطلوبة واختيار فيديو', 'danger');
+                return;
+            }
+
+            // الحصول على أسماء الجامعة والتخصص والمادة
+            const uni = universitiesData.find(u => u.id === universityId);
+            const spec = uni ? uni.specialties.find(s => s.id === specialtyId) : null;
+            const sub = spec ? spec.subjects.find(s => s.id == subjectId) : null;
+
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الرفع...';
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('subjectId', subjectId);
+            formData.append('subjectName', sub ? `${sub.title} (${sub.code})` : '');
+            formData.append('specialtyName', spec ? spec.name : '');
+            formData.append('universityName', uni ? uni.name : '');
+            formData.append('description', description);
+            formData.append('video', file);
+
+            try {
+                const response = await fetch('http://localhost:5000/api/videos/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('✅ تم رفع الفيديو بنجاح!', 'success');
+                    this.reset();
+                    fileInfo.classList.remove('show');
+                    // إعادة تعيين القوائم
+                    document.getElementById('universitySelect').value = '';
+                    document.getElementById('specialtySelect').disabled = true;
+                    document.getElementById('subjectSelect').disabled = true;
+                    loadVideos();
+                } else {
+                    showAlert('❌ خطأ: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                console.error('❌ خطأ في رفع الفيديو:', error);
+                showAlert('❌ حدث خطأ في الاتصال بالخادم', 'danger');
+            } finally {
+                btn.innerHTML = '<i class="fas fa-upload"></i> رفع الفيديو';
+                btn.disabled = false;
+            }
+        });
+
+        // ============================================================
+        // جلب الفيديوهات
+        // ============================================================
+        async function loadVideos() {
+            const grid = document.getElementById('videosGrid');
+            const countEl = document.getElementById('videosCount');
+
+            grid.innerHTML = `
+                <div class="loading-text">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    جاري تحميل الفيديوهات...
+                </div>
+            `;
+
+            try {
+                const response = await fetch('http://localhost:5000/api/videos/all');
+                const data = await response.json();
+
+                if (data.success) {
+                    allVideos = data.data;
+                    countEl.textContent = `(${allVideos.length} فيديو)`;
+                    filterVideos();
+                } else {
+                    showAlert('❌ خطأ في جلب الفيديوهات', 'danger');
+                }
+            } catch (error) {
+                console.error('❌ خطأ:', error);
+                showAlert('❌ حدث خطأ في الاتصال بالخادم', 'danger');
+            }
+        }
+
+        // ============================================================
+        // فلترة الفيديوهات
+        // ============================================================
+        function filterVideos() {
+            const universityFilter = document.getElementById('filterUniversity').value;
+            const specialtyFilter = document.getElementById('filterSpecialty').value;
+            const subjectFilter = document.getElementById('filterSubject').value;
+
+            filteredVideos = allVideos.filter(video => {
+                // الحصول على بيانات المادة من الخريطة
+                const subjectInfo = subjectMap[video.subjectId];
+                if (!subjectInfo) return true;
+
+                let match = true;
+                if (universityFilter !== 'all') {
+                    match = match && subjectInfo.universityId === universityFilter;
+                }
+                if (specialtyFilter !== 'all') {
+                    match = match && subjectInfo.specialtyId === specialtyFilter;
+                }
+                if (subjectFilter !== 'all') {
+                    match = match && video.subjectId == subjectFilter;
+                }
+                return match;
+            });
+
+            renderVideos(filteredVideos);
+        }
+
+        // ============================================================
+        // عرض الفيديوهات
+        // ============================================================
+        function renderVideos(videos) {
+            const grid = document.getElementById('videosGrid');
+
+            if (videos.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-video"></i>
+                        <p>لا توجد فيديوهات في هذا التصنيف</p>
+                        <p style="font-size:0.9rem;">قم برفع فيديو جديد باستخدام النموذج أعلاه</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = videos.map(video => {
+                const subjectInfo = subjectMap[video.subjectId] || {};
+                return `
+                    <div class="video-card">
+                        <div class="video-icon">
+                            <i class="fas fa-file-video"></i>
+                        </div>
+                        <h4>${video.title}</h4>
+                        <p>${video.description || 'لا يوجد وصف'}</p>
+                        <div class="video-meta">
+                            <span class="uni-tag"><i class="fas fa-university"></i> ${subjectInfo.university || 'جامعة'}</span>
+                            <span class="subject-tag"><i class="fas fa-book"></i> ${subjectInfo.title || video.subjectName || 'مادة'}</span>
+                            <span><i class="fas fa-eye"></i> ${video.views || 0}</span>
+                            <span><i class="fas fa-calendar-alt"></i> ${new Date(video.uploadDate).toLocaleDateString('ar-SA')}</span>
+                        </div>
+                        <div class="video-actions">
+                            <button class="btn-play" onclick="playVideo('${video._id}')">
+                                <i class="fas fa-play"></i> تشغيل
+                            </button>
+                            <button class="btn-delete" onclick="deleteVideo('${video._id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============================================================
+        // تشغيل الفيديو
+        // ============================================================
+        function playVideo(videoId) {
+            window.location.href = `video-player.html?id=${videoId}`;
+        }
+
+        // ============================================================
+        // حذف فيديو
+        // ============================================================
+        async function deleteVideo(videoId) {
+            if (!confirm('⚠️ هل أنت متأكد من حذف هذا الفيديو؟')) return;
+
+            try {
+                const response = await fetch(`http://localhost:5000/api/videos/${videoId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('✅ تم حذف الفيديو بنجاح', 'success');
+                    loadVideos();
+                } else {
+                    showAlert('❌ خطأ: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                console.error('❌ خطأ:', error);
+                showAlert('❌ حدث خطأ في الاتصال بالخادم', 'danger');
+            }
+        }
+
+        // ============================================================
+        // تشغيل التطبيق
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            if (checkAuth()) {
+                populateUniversitySelects();
+                loadVideos();
+            }
+        });
+    </script>
+</body>
+</html>

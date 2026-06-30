@@ -1,0 +1,1842 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📚 الشروحات الأكاديمية - منصة ارتقاء</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <style>
+        /* ============================================================
+           المتغيرات - نفس ألوان الصفحة الرئيسية
+           ============================================================ */
+        :root {
+            --primary: #7C3AED;
+            --primary-dark: #6D28D9;
+            --primary-light: #8B5CF6;
+            --secondary: #EC4899;
+            --secondary-dark: #DB2777;
+            --accent: #F59E0B;
+            --accent-light: #FBBF24;
+            --dark: #0F172A;
+            --dark-light: #1E293B;
+            --light: #F8FAFC;
+            --gray: #64748B;
+            --white: #FFFFFF;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 20px 60px rgba(124, 58, 237, 0.2);
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --radius: 20px;
+            --bg-body: #F1F5F9;
+            --bg-card: #FFFFFF;
+            --text-color: #0F172A;
+            --text-muted: #64748B;
+            --border-color: #E2E8F0;
+            --gradient-main: linear-gradient(135deg, #7C3AED, #EC4899);
+            --gradient-secondary: linear-gradient(135deg, #F59E0B, #EC4899);
+            --gold: #F59E0B;
+        }
+
+        /* ============================================================
+           وضع الظلام
+           ============================================================ */
+        [data-theme="dark"] {
+            --bg-body: #0F172A;
+            --bg-card: #1E293B;
+            --text-color: #F1F5F9;
+            --text-muted: #94A3B8;
+            --border-color: #334155;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            --shadow-hover: 0 20px 60px rgba(124, 58, 237, 0.3);
+        }
+
+        /* ============================================================
+           الإعدادات العامة
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-color);
+            transition: var(--transition);
+            direction: rtl;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px 25px;
+        }
+
+        /* ============================================================
+           شريط التمرير المخصص
+           ============================================================ */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-body);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--gradient-main);
+            border-radius: 10px;
+        }
+
+        /* ============================================================
+           الهيدر
+           ============================================================ */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            padding: 15px 25px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+            border: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            background: var(--gradient-main);
+            color: #fff;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+
+        .logo-text {
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--text-color);
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text span {
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .header-actions .btn-back {
+            background: var(--bg-body);
+            color: var(--text-color);
+            padding: 8px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            border: 1px solid var(--border-color);
+        }
+
+        .header-actions .btn-back:hover {
+            background: var(--gradient-main);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .header-actions .btn-admin {
+            background: var(--gradient-secondary);
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .header-actions .btn-admin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(245, 158, 11, 0.3);
+        }
+
+        /* ============================================================
+           زر تبديل الوضع
+           ============================================================ */
+        .theme-toggle {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 999;
+            background: var(--bg-card);
+            color: var(--text-color);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--primary);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(20deg);
+            box-shadow: var(--shadow-hover);
+            background: var(--gradient-main);
+            color: #fff;
+        }
+
+        /* ============================================================
+           زر العودة للأعلى
+           ============================================================ */
+        .back-to-top {
+            position: fixed;
+            bottom: 95px;
+            left: 30px;
+            z-index: 999;
+            background: var(--gradient-main);
+            color: #fff;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: var(--transition);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-to-top.visible {
+            display: flex;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* ============================================================
+           التنقل بين الجامعات
+           ============================================================ */
+        .universities-nav {
+            background: var(--bg-card);
+            padding: 15px 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 15px;
+            overflow-x: auto;
+            display: flex;
+            gap: 10px;
+            flex-wrap: nowrap;
+            scrollbar-width: thin;
+            border: 1px solid var(--border-color);
+        }
+
+        .universities-nav::-webkit-scrollbar {
+            height: 4px;
+        }
+        .universities-nav::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 10px;
+        }
+
+        .uni-btn {
+            background: var(--bg-body);
+            border: none;
+            padding: 10px 22px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+            font-family: 'Cairo', sans-serif;
+            border: 1px solid transparent;
+        }
+
+        .uni-btn i {
+            font-size: 16px;
+            color: var(--text-muted);
+        }
+
+        .uni-btn:hover {
+            background: var(--border-color);
+            transform: translateY(-2px);
+        }
+
+        .uni-btn.active {
+            background: var(--gradient-main);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+            border-color: var(--primary);
+        }
+
+        .uni-btn.active i {
+            color: #fff;
+        }
+
+        .uni-btn .badge {
+            background: var(--bg-card);
+            color: var(--text-muted);
+            padding: 0 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .uni-btn.active .badge {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+
+        /* ============================================================
+           التنقل بين التخصصات
+           ============================================================ */
+        .specialties-nav {
+            background: var(--bg-card);
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            overflow-x: auto;
+            display: flex;
+            gap: 10px;
+            flex-wrap: nowrap;
+            scrollbar-width: thin;
+            border: 1px solid var(--border-color);
+            min-height: 55px;
+            align-items: center;
+        }
+
+        .specialties-nav::-webkit-scrollbar {
+            height: 4px;
+        }
+        .specialties-nav::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 10px;
+        }
+
+        .spec-btn {
+            background: var(--bg-body);
+            border: none;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            font-family: 'Cairo', sans-serif;
+            border: 1px solid transparent;
+        }
+
+        .spec-btn i {
+            font-size: 14px;
+        }
+
+        .spec-btn:hover {
+            background: var(--border-color);
+            transform: translateY(-2px);
+        }
+
+        .spec-btn.active {
+            background: var(--gradient-secondary);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .spec-btn.active i {
+            color: #fff;
+        }
+
+        /* ============================================================
+           لوحة البحث والفلتر
+           ============================================================ */
+        .control-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            padding: 18px 25px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            gap: 15px;
+            border: 1px solid var(--border-color);
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--bg-body);
+            border-radius: 40px;
+            padding: 8px 20px;
+            flex: 1;
+            min-width: 220px;
+            border: 2px solid transparent;
+            transition: var(--transition);
+        }
+
+        .search-box:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+        }
+
+        .search-box i {
+            color: var(--text-muted);
+            margin-left: 12px;
+        }
+
+        .search-box input {
+            border: none;
+            background: transparent;
+            padding: 10px 0;
+            width: 100%;
+            font-size: 16px;
+            outline: none;
+            font-family: 'Cairo', sans-serif;
+            color: var(--text-color);
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .subject-counter {
+            font-size: 14px;
+            color: var(--text-muted);
+            background: var(--bg-body);
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+
+        /* ============================================================
+           شبكة البطاقات - تصميم جديد
+           ============================================================ */
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 28px;
+            margin-top: 10px;
+        }
+
+        .subject-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .subject-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-main);
+        }
+
+        .subject-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--primary-light);
+        }
+
+        .card-header {
+            padding: 20px 22px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .card-header .subject-code {
+            font-size: 13px;
+            color: var(--gold);
+            background: #fef9e7;
+            padding: 2px 14px;
+            border-radius: 30px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .card-header .subject-icon {
+            font-size: 2.5rem;
+            width: 55px;
+            height: 55px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--primary);
+        }
+
+        .card-body {
+            padding: 0 22px 18px;
+            flex: 1;
+        }
+
+        .card-body h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 8px;
+        }
+
+        .card-body .instructor {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .card-body .instructor i {
+            margin-left: 6px;
+            color: var(--primary);
+        }
+
+        .card-body p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.7;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-footer {
+            padding: 15px 22px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .card-footer .stats {
+            display: flex;
+            gap: 18px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .card-footer .stats i {
+            margin-left: 5px;
+        }
+
+        .card-footer .stats .video-count {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .btn-detail {
+            background: var(--gradient-main);
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .btn-detail:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-detail.gold {
+            background: var(--gradient-secondary);
+        }
+
+        .btn-detail.gold:hover {
+            box-shadow: 0 5px 20px rgba(245, 158, 11, 0.3);
+        }
+
+        /* ============================================================
+           حالة عدم وجود نتائج
+           ============================================================ */
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+
+        .no-results i {
+            font-size: 50px;
+            display: block;
+            margin-bottom: 15px;
+            color: var(--border-color);
+        }
+
+        /* ============================================================
+           التجاوب
+           ============================================================ */
+        @media (max-width: 768px) {
+            .main-header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .logo-area {
+                justify-content: center;
+            }
+            .header-actions {
+                justify-content: center;
+            }
+            .control-panel {
+                flex-direction: column;
+            }
+            .subjects-grid {
+                grid-template-columns: 1fr;
+            }
+            .universities-nav {
+                padding: 10px 15px;
+            }
+            .uni-btn {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+            .specialties-nav {
+                padding: 10px 15px;
+                min-height: 45px;
+            }
+            .spec-btn {
+                padding: 6px 14px;
+                font-size: 12px;
+            }
+            .theme-toggle,
+            .back-to-top {
+                width: 45px;
+                height: 45px;
+                font-size: 1.2rem;
+                bottom: 20px;
+                left: 20px;
+            }
+            .back-to-top {
+                bottom: 75px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 12px 15px;
+            }
+            .main-header {
+                padding: 12px 15px;
+            }
+            .logo-text {
+                font-size: 20px;
+            }
+            .logo-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+            .card-body h3 {
+                font-size: 18px;
+            }
+            .card-footer {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .card-footer .stats {
+                justify-content: center;
+            }
+            .btn-detail {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ====== زر تبديل الوضع ====== -->
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="تبديل الوضع">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <!-- ====== زر العودة للأعلى ====== -->
+    <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <div class="container">
+
+        <!-- ============================================================
+        الهيدر
+        ============================================================ -->
+        <header class="main-header">
+            <a href="index.html" class="logo-area">
+                <div class="logo-icon"><i class="fas fa-rocket"></i></div>
+                <div class="logo-text">منصة <span>ارتقاء</span></div>
+            </a>
+            <div class="header-actions">
+                <a href="index.html" class="btn-back">
+                    <i class="fas fa-arrow-right"></i> العودة للرئيسية
+                </a>
+                <a href="admin-videos.html" class="btn-admin">
+                    <i class="fas fa-video"></i> إدارة الفيديوهات
+                </a>
+                <a href="dashboard.html" class="btn-admin" style="background:var(--gradient-main);">
+                    <i class="fas fa-tachometer-alt"></i> لوحة التحكم
+                </a>
+            </div>
+        </header>
+
+        <!-- ============================================================
+        شريط الجامعات
+        ============================================================ -->
+        <nav class="universities-nav" id="universitiesNav">
+            <!-- سيتم تعبئته بواسطة JavaScript -->
+        </nav>
+
+        <!-- ============================================================
+        شريط التخصصات
+        ============================================================ -->
+        <nav class="specialties-nav" id="specialtiesNav">
+            <!-- سيتم تعبئته بواسطة JavaScript -->
+        </nav>
+
+        <!-- ============================================================
+        لوحة البحث
+        ============================================================ -->
+        <div class="control-panel">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="ابحث عن مادة، دكتور، أو كود..." />
+            </div>
+            <span class="subject-counter" id="subjectCounter">٠ مادة</span>
+        </div>
+
+        <!-- ============================================================
+        شبكة المواد
+        ============================================================ -->
+        <div class="subjects-grid" id="subjectsGrid">
+            <!-- سيتم تعبئتها بواسطة JavaScript -->
+        </div>
+
+    </div>
+
+    <!-- ============================================================
+    ====== جافا سكريبت ======
+    ============================================================ -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js">
+    </script>
+    <script>
+        // ============================================================
+        // 1. البيانات الكاملة - الجامعات السعودية والتخصصات والمواد
+        // ============================================================
+        const universitiesData = [{
+            id: 'ksu',
+            name: 'جامعة الملك سعود',
+            icon: 'fa-university',
+            founded: '1377 هـ',
+            specialties: [{
+                id: 'ksu-engineering',
+                name: 'الهندسة',
+                icon: 'fa-microchip',
+                subjects: [
+                    { id: 1, title: 'رياضيات ١', code: 'MATH-101', instructor: 'د. خالد المنصور',
+                        description: 'التفاضل والتكامل، النهايات، الاشتقاق، وتطبيقاتها في الهندسة.',
+                        videos: 24, icon: 'fa-calculator' },
+                    { id: 2, title: 'الفيزياء العامة', code: 'PHYS-201', instructor: 'د. نورة السبيعي',
+                        description: 'الميكانيكا الكلاسيكية، القوى، الحركة، والطاقة.', videos: 18,
+                        icon: 'fa-atom' },
+                    { id: 3, title: 'الكيمياء العامة', code: 'CHEM-101', instructor: 'د. أحمد القرني',
+                        description: 'المفاهيم الأساسية في الكيمياء، التفاعلات، والمعادلات.', videos: 20,
+                        icon: 'fa-flask' },
+                    { id: 4, title: 'ميكانيكا الموائع', code: 'ME-301', instructor: 'د. سعد الحارثي',
+                        description: 'دراسة خصائص الموائع، الضغط، الطفو، والتدفق.', videos: 16,
+                        icon: 'fa-water' },
+                    { id: 5, title: 'الدوائر الكهربائية', code: 'EE-201', instructor: 'د. فهد الزهراني',
+                        description: 'تحليل الدوائر الكهربائية، قوانين كيرشوف، التيار المستمر والمتردد.',
+                        videos: 22, icon: 'fa-bolt' },
+                    { id: 6, title: 'مقاومة المواد', code: 'CE-205', instructor: 'د. ماجد العتيبي',
+                        description: 'الإجهادات والانفعالات، عزم الانحناء، وقص العتبات.', videos: 19,
+                        icon: 'fa-cubes' },
+                    { id: 7, title: 'الرسم الهندسي', code: 'ENG-101', instructor: 'د. ياسر النفيسي',
+                        description: 'أساسيات الرسم الهندسي، الإسقاطات، والمناظير.', videos: 14,
+                        icon: 'fa-drafting-compass' }
+                ]
+            }, {
+                id: 'ksu-medicine',
+                name: 'الطب',
+                icon: 'fa-heartbeat',
+                subjects: [
+                    { id: 8, title: 'تشريح الإنسان', code: 'MED-101', instructor: 'د. سامي الغامدي',
+                        description: 'دراسة أجهزة الجسم الرئيسية: الهيكلي، العضلي، والعصبي.', videos: 30,
+                        icon: 'fa-heart' },
+                    { id: 9, title: 'علم الأدوية', code: 'MED-210', instructor: 'د. هاني الشهري',
+                        description: 'تصنيف الأدوية، آلية العمل، التفاعلات الدوائية، والجرعات.', videos: 22,
+                        icon: 'fa-capsules' },
+                    { id: 10, title: 'علم الأمراض', code: 'MED-305', instructor: 'د. إيمان العتيبي',
+                        description: 'دراسة الآليات المرضية، التغيرات الخلوية، والاستجابة المناعية.',
+                        videos: 26, icon: 'fa-microscope' },
+                    { id: 11, title: 'الفسيولوجيا', code: 'MED-202', instructor: 'د. محمد العيسى',
+                        description: 'وظائف أجهزة الجسم المختلفة: القلب، التنفس، الهضم، والإخراج.', videos: 28,
+                        icon: 'fa-lungs' },
+                    { id: 12, title: 'الجراحة العامة', code: 'MED-401', instructor: 'د. خالد الغامدي',
+                        description: 'مبادئ الجراحة، التعقيم، التخدير، والعمليات الجراحية الأساسية.',
+                        videos: 20, icon: 'fa-syringe' },
+                    { id: 13, title: 'طب الأطفال', code: 'MED-405', instructor: 'د. نورة القحطاني',
+                        description: 'أمراض الأطفال الشائعة، التغذية، النمو، والتطعيمات.', videos: 18,
+                        icon: 'fa-child' }
+                ]
+            }, {
+                id: 'ksu-business',
+                name: 'إدارة الأعمال',
+                icon: 'fa-chart-line',
+                subjects: [
+                    { id: 14, title: 'مبادئ الإدارة', code: 'BUS-201', instructor: 'د. فاطمة الزهراني',
+                        description: 'التخطيط، التنظيم، القيادة، الرقابة. أساسيات الإدارة الحديثة.',
+                        videos: 14, icon: 'fa-chart-pie' },
+                    { id: 15, title: 'التسويق الرقمي', code: 'MKT-301', instructor: 'د. ليلى المطيري',
+                        description: 'إستراتيجيات التسويق عبر الإنترنت، وسائل التواصل، وتحليل البيانات.',
+                        videos: 16, icon: 'fa-bullhorn' },
+                    { id: 16, title: 'المحاسبة المالية', code: 'ACC-101', instructor: 'د. مها الحربي',
+                        description: 'أساسيات المحاسبة، القوائم المالية، المعادلة المحاسبية.', videos: 20,
+                        icon: 'fa-calculator' },
+                    { id: 17, title: 'الاقتصاد الإداري', code: 'ECO-201', instructor: 'د. سعيد الزهراني',
+                        description: 'مفاهيم الاقتصاد الجزئي والكلي، العرض والطلب، والتكلفة.', videos: 18,
+                        icon: 'fa-chart-bar' }
+                ]
+            }, {
+                id: 'ksu-cs',
+                name: 'علوم الحاسوب',
+                icon: 'fa-laptop-code',
+                subjects: [
+                    { id: 18, title: 'برمجة ١', code: 'CS-101', instructor: 'د. عبدالله المطيري',
+                        description: 'أساسيات البرمجة بلغة Python، المتغيرات، الحلقات، والدوال.', videos: 25,
+                        icon: 'fa-code' },
+                    { id: 19, title: 'هياكل البيانات', code: 'CS-201', instructor: 'د. سارة العتيبي',
+                        description: 'القوائم، الأكوام، الطوابير، والأشجار، والخوارزميات الأساسية.', videos: 22,
+                        icon: 'fa-database' },
+                    { id: 20, title: 'قواعد البيانات', code: 'CS-301', instructor: 'د. فهد الحارثي',
+                        description: 'تصميم قواعد البيانات، لغة SQL، النمذجة، والتطبيقات العملية.', videos: 20,
+                        icon: 'fa-table' },
+                    { id: 21, title: 'الذكاء الاصطناعي', code: 'CS-405', instructor: 'د. نورة الشمري',
+                        description: 'مفاهيم الذكاء الاصطناعي، الخوارزميات، التعلم الآلي.', videos: 24,
+                        icon: 'fa-robot' }
+                ]
+            }, {
+                id: 'ksu-law',
+                name: 'القانون',
+                icon: 'fa-gavel',
+                subjects: [
+                    { id: 22, title: 'النظام القانوني السعودي', code: 'LAW-101',
+                        instructor: 'د. عبدالرحمن المبارك',
+                        description: 'مصادر التشريع، التنظيم القضائي، والأنظمة الأساسية في المملكة.', videos: 15,
+                        icon: 'fa-balance-scale' },
+                    { id: 23, title: 'القانون التجاري', code: 'LAW-201', instructor: 'د. فايز العتيبي',
+                        description: 'الشركات التجارية، العقود التجارية، الإفلاس، والأوراق التجارية.', videos: 18,
+                        icon: 'fa-handshake' },
+                    { id: 24, title: 'قانون العمل', code: 'LAW-305', instructor: 'د. خالد السبيعي',
+                        description: 'علاقات العمل، العقود، الحقوق، والالتزامات بين العامل وصاحب العمل.',
+                        videos: 14, icon: 'fa-briefcase' }
+                ]
+            }]
+        }, {
+            id: 'kau',
+            name: 'جامعة الملك عبدالعزيز',
+            icon: 'fa-university',
+            founded: '1387 هـ',
+            specialties: [{
+                id: 'kau-engineering',
+                name: 'الهندسة',
+                icon: 'fa-microchip',
+                subjects: [
+                    { id: 25, title: 'رياضيات ٢', code: 'MATH-102', instructor: 'د. محمد القحطاني',
+                        description: 'المعادلات التفاضلية، المتسلسلات، وتحويلات لابلاس.', videos: 22,
+                        icon: 'fa-calculator' },
+                    { id: 26, title: 'فيزياء ٢', code: 'PHYS-202', instructor: 'د. سارة الشمري',
+                        description: 'الكهرومغناطيسية، الموجات، والبصريات الهندسية.', videos: 16,
+                    icon: 'fa-atom' },
+                    { id: 27, title: 'ديناميكا حرارية', code: 'ME-201', instructor: 'د. خالد العتيبي',
+                        description: 'قوانين الديناميكا الحرارية، الأنظمة المغلقة والمفتوحة.', videos: 18,
+                        icon: 'fa-fire' }
+                ]
+            }, {
+                id: 'kau-medicine',
+                name: 'الطب',
+                icon: 'fa-heartbeat',
+                subjects: [
+                    { id: 28, title: 'الأشعة التشخيصية', code: 'MED-310', instructor: 'د. سليمان الحماد',
+                        description: 'مبادئ التصوير الطبي، الأشعة السينية، الموجات فوق الصوتية.', videos: 16,
+                        icon: 'fa-x-ray' },
+                    { id: 29, title: 'الجراحة العامة', code: 'MED-401', instructor: 'د. عبدالعزيز المطيري',
+                        description: 'مبادئ الجراحة، التعقيم، التخدير، والعمليات الجراحية الأساسية.',
+                        videos: 20, icon: 'fa-syringe' }
+                ]
+            }, {
+                id: 'kau-business',
+                name: 'إدارة الأعمال',
+                icon: 'fa-chart-line',
+                subjects: [
+                    { id: 30, title: 'إدارة الموارد البشرية', code: 'HRM-301', instructor: 'د. ناصر العتيبي',
+                        description: 'التوظيف، التدريب، تقييم الأداء، التعويضات، وعلاقات العمل.', videos: 15,
+                        icon: 'fa-users' },
+                    { id: 31, title: 'ريادة الأعمال', code: 'ENT-101', instructor: 'د. أحمد السبيعي',
+                        description: 'كيفية بدء مشروعك الخاص، دراسة الجدوى، التمويل، وإدارة النمو.', videos: 12,
+                        icon: 'fa-rocket' }
+                ]
+            }, {
+                id: 'kau-pharmacy',
+                name: 'الصيدلة',
+                icon: 'fa-prescription-bottle',
+                subjects: [
+                    { id: 32, title: 'الصيدلة العامة', code: 'PHR-101', instructor: 'د. محمد آل سلمان',
+                        description: 'مقدمة في علم الصيدلة، المجالات، والمسؤوليات المهنية.', videos: 14,
+                        icon: 'fa-pills' },
+                    { id: 33, title: 'الصيدلة السريرية', code: 'PHR-301', instructor: 'د. فهد العريني',
+                        description: 'تطبيق المعرفة الدوائية في رعاية المرضى، التفاعلات الدوائية.', videos: 22,
+                        icon: 'fa-stethoscope' }
+                ]
+            }]
+        }, {
+            id: 'kfupm',
+            name: 'جامعة الملك فهد للبترول والمعادن',
+            icon: 'fa-industry',
+            founded: '1383 هـ',
+            specialties: [{
+                id: 'kfupm-engineering',
+                name: 'الهندسة',
+                icon: 'fa-microchip',
+                subjects: [
+                    { id: 34, title: 'هندسة البترول', code: 'PE-301', instructor: 'د. سعد الحارثي',
+                        description: 'استخراج النفط والغاز، عمليات الحفر، والإنتاج.', videos: 20,
+                        icon: 'fa-oil-well' },
+                    { id: 35, title: 'هندسة كيميائية', code: 'CHE-201', instructor: 'د. ناصر الزهراني',
+                        description: 'عمليات التكرير، التفاعلات الكيميائية، وتصميم المصانع.', videos: 18,
+                        icon: 'fa-flask' },
+                    { id: 36, title: 'هندسة كهربائية', code: 'EE-301', instructor: 'د. فهد العتيبي',
+                        description: 'أنظمة القدرة، الآلات الكهربائية، والإلكترونيات الصناعية.', videos: 16,
+                        icon: 'fa-bolt' }
+                ]
+            }, {
+                id: 'kfupm-cs',
+                name: 'علوم الحاسوب',
+                icon: 'fa-laptop-code',
+                subjects: [
+                    { id: 37, title: 'شبكات الحاسوب', code: 'CS-303', instructor: 'د. خالد الزهراني',
+                        description: 'أساسيات الشبكات، نموذج OSI، TCP/IP، والتوجيه، والأمان.', videos: 18,
+                        icon: 'fa-network-wired' },
+                    { id: 38, title: 'أمن المعلومات', code: 'CS-401', instructor: 'د. مشعل المطيري',
+                        description: 'مبادئ أمن المعلومات، التشفير، الاختراق الأخلاقي، وسياسات الأمان.',
+                        videos: 16, icon: 'fa-shield-alt' }
+                ]
+            }]
+        }, {
+            id: 'pu',
+            name: 'جامعة الأميرة نورة بنت عبدالرحمن',
+            icon: 'fa-female',
+            founded: '1425 هـ',
+            specialties: [{
+                id: 'pu-education',
+                name: 'التربية',
+                icon: 'fa-chalkboard-teacher',
+                subjects: [
+                    { id: 39, title: 'علم النفس التربوي', code: 'EDU-201', instructor: 'د. فاطمة القحطاني',
+                        description: 'النظريات النفسية، التعلم، الدافعية، والنمو المعرفي والاجتماعي.',
+                        videos: 16, icon: 'fa-brain' },
+                    { id: 40, title: 'طرق التدريس', code: 'EDU-301', instructor: 'د. منى الزهراني',
+                        description: 'استراتيجيات التدريس الحديثة، التخطيط للدرس، وتقنيات التعليم.', videos: 18,
+                        icon: 'fa-chalkboard' },
+                    { id: 41, title: 'المناهج وطرق التدريس', code: 'EDU-401', instructor: 'د. أحمد العمر',
+                        description: 'تصميم المناهج، تحليل المحتوى، وتقويم المناهج الدراسية.', videos: 14,
+                        icon: 'fa-book-open' }
+                ]
+            }, {
+                id: 'pu-business',
+                name: 'إدارة الأعمال',
+                icon: 'fa-chart-line',
+                subjects: [
+                    { id: 42, title: 'إدارة الجودة الشاملة', code: 'QM-201', instructor: 'د. سارة الحربي',
+                        description: 'مفاهيم الجودة، المعايير الدولية، وتطبيقاتها في المؤسسات.', videos: 12,
+                        icon: 'fa-check-double' },
+                    { id: 43, title: 'القيادة الإدارية', code: 'LDR-301', instructor: 'د. نورة الشمري',
+                        description: 'نظريات القيادة، اتخاذ القرار، وإدارة الأزمات.', videos: 14,
+                        icon: 'fa-user-tie' }
+                ]
+            }, {
+                id: 'pu-cs',
+                name: 'علوم الحاسوب',
+                icon: 'fa-laptop-code',
+                subjects: [
+                    { id: 44, title: 'برمجة ٢', code: 'CS-102', instructor: 'د. مها الحربي',
+                        description: 'البرمجة الكائنية، الميراث، تعدد الأشكال، وإدارة الاستثناءات.', videos: 20,
+                        icon: 'fa-code' },
+                    { id: 45, title: 'نظم التشغيل', code: 'CS-304', instructor: 'د. ليلى المطيري',
+                        description: 'مبادئ نظم التشغيل، إدارة الذاكرة، العمليات، والخيوط.', videos: 16,
+                        icon: 'fa-server' }
+                ]
+            }]
+        }, {
+            id: 'iau',
+            name: 'جامعة الإمام عبدالرحمن بن فيصل',
+            icon: 'fa-university',
+            founded: '1395 هـ',
+            specialties: [{
+                id: 'iau-medicine',
+                name: 'الطب',
+                icon: 'fa-heartbeat',
+                subjects: [
+                    { id: 46, title: 'طب الأسرة', code: 'MED-410', instructor: 'د. محمد العيسى',
+                        description: 'الرعاية الصحية الأولية، طب الأسرة، والتثقيف الصحي.', videos: 14,
+                        icon: 'fa-family' },
+                    { id: 47, title: 'الأمراض الباطنية', code: 'MED-501', instructor: 'د. خالد الغامدي',
+                        description: 'تشخيص وعلاج الأمراض الباطنية الشائعة والمزمنة.', videos: 22,
+                        icon: 'fa-stethoscope' }
+                ]
+            }, {
+                id: 'iau-dentistry',
+                name: 'طب الأسنان',
+                icon: 'fa-tooth',
+                subjects: [
+                    { id: 48, title: 'تشريح الأسنان', code: 'DEN-101', instructor: 'د. محمد الزهراني',
+                        description: 'دراسة تركيب الأسنان، الأنسجة الداعمة، والتشريح الوصفي للأسنان.',
+                        videos: 20, icon: 'fa-tooth' },
+                    { id: 49, title: 'جراحة الفم والأسنان', code: 'DEN-401', instructor: 'د. سعد الحارثي',
+                        description: 'خلع الأسنان، الجراحات الفموية، التعقيم، ومضاعفات ما بعد الجراحة.',
+                        videos: 16, icon: 'fa-syringe' },
+                    { id: 50, title: 'تقويم الأسنان', code: 'DEN-501', instructor: 'د. نورة الشمري',
+                        description: 'مبادئ تقويم الأسنان، الأجهزة التقويمية، وتشخيص حالات عدم الانتظام.',
+                        videos: 14, icon: 'fa-smile' }
+                ]
+            }, {
+                id: 'iau-engineering',
+                name: 'الهندسة',
+                icon: 'fa-microchip',
+                subjects: [
+                    { id: 51, title: 'هندسة مدنية', code: 'CE-301', instructor: 'د. سعد الحارثي',
+                        description: 'تصميم المنشآت الخرسانية والحديدية، تحليل الهياكل.', videos: 18,
+                        icon: 'fa-building' }
+                ]
+            }]
+        }, {
+            id: 'kaust',
+            name: 'جامعة الملك عبدالله للعلوم والتقنية',
+            icon: 'fa-flask',
+            founded: '1426 هـ',
+            specialties: [{
+                id: 'kaust-science',
+                name: 'العلوم',
+                icon: 'fa-flask',
+                subjects: [
+                    { id: 52, title: 'الكيمياء المتقدمة', code: 'CHEM-501', instructor: 'د. سامي الغامدي',
+                        description: 'الكيمياء العضوية المتقدمة، التفاعلات، والمركبات المعقدة.', videos: 20,
+                        icon: 'fa-flask' },
+                    { id: 53, title: 'الفيزياء الكمية', code: 'PHYS-501', instructor: 'د. نورة السبيعي',
+                        description: 'ميكانيكا الكم، النظرية النسبية، والفيزياء الحديثة.', videos: 16,
+                        icon: 'fa-atom' }
+                ]
+            }, {
+                id: 'kaust-engineering',
+                name: 'الهندسة',
+                icon: 'fa-microchip',
+                subjects: [
+                    { id: 54, title: 'الهندسة الجزيئية', code: 'MSE-501', instructor: 'د. فهد الزهراني',
+                        description: 'المواد النانوية، البوليمرات، والمواد المتقدمة.', videos: 14,
+                        icon: 'fa-microscope' }
+                ]
+            }]
+        }, {
+            id: 'ksu-health',
+            name: 'جامعة الملك سعود بن عبدالعزيز للعلوم الصحية',
+            icon: 'fa-hospital',
+            founded: '1426 هـ',
+            specialties: [{
+                id: 'ksu-health-science',
+                name: 'العلوم الصحية',
+                icon: 'fa-heartbeat',
+                subjects: [
+                    { id: 55, title: 'التمريض', code: 'NUR-101', instructor: 'د. سارة العتيبي',
+                        description: 'أساسيات التمريض، الرعاية الصحية، والممارسة السريرية.', videos: 18,
+                        icon: 'fa-user-nurse' },
+                    { id: 56, title: 'المختبرات الطبية', code: 'LAB-201', instructor: 'د. محمد القرني',
+                        description: 'التشخيص المخبري، تحليل العينات، والأمراض المعدية.', videos: 16,
+                        icon: 'fa-microscope' }
+                ]
+            }]
+        }, {
+            id: 'qu',
+            name: 'جامعة القصيم',
+            icon: 'fa-university',
+            founded: '1423 هـ',
+            specialties: [{
+                id: 'qu-science',
+                name: 'العلوم',
+                icon: 'fa-flask',
+                subjects: [
+                    { id: 57, title: 'الرياضيات التطبيقية', code: 'MATH-301', instructor: 'د. خالد المنصور',
+                        description: 'النمذجة الرياضية، الطرق العددية، والتحليل العددي.', videos: 16,
+                        icon: 'fa-calculator' },
+                    { id: 58, title: 'الإحصاء التطبيقي', code: 'STAT-201', instructor: 'د. نورة السبيعي',
+                        description: 'التحليل الإحصائي، اختبار الفروض، وتحليل الانحدار.', videos: 14,
+                        icon: 'fa-chart-bar' }
+                ]
+            }, {
+                id: 'qu-education',
+                name: 'التربية',
+                icon: 'fa-chalkboard-teacher',
+                subjects: [
+                    { id: 59, title: 'الإدارة التربوية', code: 'EDU-501', instructor: 'د. خالد المطيري',
+                        description: 'قيادة المؤسسات التعليمية، التخطيط الاستراتيجي، وإدارة الجودة.',
+                        videos: 15, icon: 'fa-building-columns' }
+                ]
+            }]
+        }, {
+            id: 'tu',
+            name: 'جامعة الطائف',
+            icon: 'fa-university',
+            founded: '1423 هـ',
+            specialties: [{
+                id: 'tu-science',
+                name: 'العلوم',
+                icon: 'fa-flask',
+                subjects: [
+                    { id: 60, title: 'الفيزياء التطبيقية', code: 'PHYS-301', instructor: 'د. أحمد القرني',
+                        description: 'تطبيقات الفيزياء في الهندسة والتكنولوجيا.', videos: 14,
+                        icon: 'fa-atom' }
+                ]
+            }, {
+                id: 'tu-engineering',
+                name: 'الهندسة',
+                icon: 'fa-microchip',
+                subjects: [
+                    { id: 61, title: 'هندسة اتصالات', code: 'CE-401', instructor: 'د. سعد الحارثي',
+                        description: 'أنظمة الاتصالات، الإشارات، والألياف البصرية.', videos: 16,
+                        icon: 'fa-satellite' }
+                ]
+            }]
+        }, {
+            id: 'kku',
+            name: 'جامعة الملك خالد',
+            icon: 'fa-university',
+            founded: '1419 هـ',
+            specialties: [{
+                id: 'kku-science',
+                name: 'العلوم',
+                icon: 'fa-flask',
+                subjects: [
+                    { id: 62, title: 'الكيمياء البيئية', code: 'CHEM-401', instructor: 'د. سامي الغامدي',
+                        description: 'الكيمياء البيئية، التلوث، ومعالجة النفايات.', videos: 14,
+                        icon: 'fa-leaf' }
+                ]
+            }, {
+                id: 'kku-law',
+                name: 'القانون',
+                icon: 'fa-gavel',
+                subjects: [
+                    { id: 63, title: 'القانون الدولي', code: 'LAW-501', instructor: 'د. نورة الغامدي',
+                        description: 'مبادئ القانون الدولي العام، المعاهدات، المنظمات الدولية، وحقوق الإنسان.',
+                        videos: 16, icon: 'fa-globe' }
+                ]
+            }]
+        }, {
+            id: 'iu',
+            name: 'الجامعة الإسلامية بالمدينة المنورة',
+            icon: 'fa-mosque',
+            founded: '1381 هـ',
+            specialties: [{
+                id: 'iu-sharia',
+                name: 'الشريعة',
+                icon: 'fa-book-quran',
+                subjects: [
+                    { id: 64, title: 'أصول الفقه', code: 'SHAR-101', instructor: 'د. عبدالله العمر',
+                        description: 'مبادئ أصول الفقه، مصادر التشريع، والأدلة الشرعية.', videos: 18,
+                        icon: 'fa-book' },
+                    { id: 65, title: 'التفسير', code: 'SHAR-201', instructor: 'د. محمد القرني',
+                        description: 'علوم التفسير، تفسير القرآن الكريم، وأساليب المفسرين.', videos: 16,
+                        icon: 'fa-book-open' }
+                ]
+            }]
+        }, {
+            id: 'um',
+            name: 'جامعة أم القرى',
+            icon: 'fa-kaaba',
+            founded: '1369 هـ',
+            specialties: [{
+                id: 'um-sharia',
+                name: 'الشريعة',
+                icon: 'fa-book-quran',
+                subjects: [
+                    { id: 66, title: 'الحديث النبوي', code: 'SHAR-301', instructor: 'د. سعيد الغامدي',
+                        description: 'علوم الحديث، مصطلح الحديث، ودراسة الأحاديث.', videos: 20,
+                        icon: 'fa-hadith' },
+                    { id: 67, title: 'الفقه المقارن', code: 'SHAR-401', instructor: 'د. ناصر الزهراني',
+                        description: 'المذاهب الفقهية، أدلة الأحكام، والمسائل الفقهية.', videos: 18,
+                        icon: 'fa-balance-scale' }
+                ]
+            }, {
+                id: 'um-business',
+                name: 'إدارة الأعمال',
+                icon: 'fa-chart-line',
+                subjects: [
+                    { id: 68, title: 'الاقتصاد الإسلامي', code: 'ECO-301', instructor: 'د. فاطمة القحطاني',
+                        description: 'النظام الاقتصادي الإسلامي، المعاملات المالية، والزكاة.', videos: 14,
+                        icon: 'fa-coins' }
+                ]
+            }]
+        }, {
+            id: 'ju',
+            name: 'جامعة الجوف',
+            icon: 'fa-university',
+            founded: '1426 هـ',
+            specialties: [{
+                id: 'ju-science',
+                name: 'العلوم',
+                icon: 'fa-flask',
+                subjects: [
+                    { id: 69, title: 'الجيولوجيا', code: 'GEO-201', instructor: 'د. خالد المطيري',
+                        description: 'طبقات الأرض، الصخور، المعادن، والعمليات الجيولوجية.', videos: 14,
+                        icon: 'fa-mountain' }
+                ]
+            }]
+        }, {
+            id: 'bu',
+            name: 'جامعة الباحة',
+            icon: 'fa-university',
+            founded: '1426 هـ',
+            specialties: [{
+                id: 'bu-science',
+                name: 'العلوم',
+                icon: 'fa-flask',
+                subjects: [
+                    { id: 70, title: 'البيولوجيا', code: 'BIO-201', instructor: 'د. سارة العتيبي',
+                        description: 'علم الأحياء، الخلية، الوراثة، والتنوع البيولوجي.', videos: 16,
+                        icon: 'fa-dna' }
+                ]
+            }]
+        }, {
+            id: 'nu',
+            name: 'جامعة نجران',
+            icon: 'fa-university',
+            founded: '1427 هـ',
+            specialties: [{
+                id: 'nu-science',
+                name: 'العلوم',
+                icon: 'fa-flask',
+                subjects: [
+                    { id: 71, title: 'الفلك', code: 'AST-201', instructor: 'د. محمد العيسى',
+                        description: 'النظام الشمسي، النجوم، المجرات، والكون.', videos: 12,
+                        icon: 'fa-stars' }
+                ]
+            }]
+        }, {
+            id: 'nbu',
+            name: 'جامعة الحدود الشمالية',
+            icon: 'fa-university',
+            founded: '1428 هـ',
+            specialties: [{
+                id: 'nbu-science',
+                name: 'العلوم',
+                icon: 'fa-flask',
+                subjects: [
+                    { id: 72, title: 'المناخ', code: 'CLI-201', instructor: 'د. ناصر الزهراني',
+                        description: 'العوامل المناخية، التغير المناخي، والظواهر الجوية.', videos: 12,
+                        icon: 'fa-cloud-sun' }
+                ]
+            }]
+        }, {
+            id: 'psau',
+            name: 'جامعة الأمير سطام بن عبدالعزيز',
+            icon: 'fa-university',
+            founded: '1430 هـ',
+            specialties: [{
+                id: 'psau-science',
+                name: 'العلوم',
+                icon: 'fa-flask',
+                subjects: [
+                    { id: 73, title: 'الرياضيات البحتة', code: 'MATH-401', instructor: 'د. خالد المنصور',
+                        description: 'التحليل، الجبر التجريدي، والطوبولوجيا.', videos: 14,
+                        icon: 'fa-calculator' }
+                ]
+            }]
+        }, {
+            id: 'seu',
+            name: 'الجامعة السعودية الإلكترونية',
+            icon: 'fa-laptop',
+            founded: '1432 هـ',
+            specialties: [{
+                id: 'seu-cs',
+                name: 'علوم الحاسوب',
+                icon: 'fa-laptop-code',
+                subjects: [
+                    { id: 74, title: 'التعلم الإلكتروني', code: 'ELE-201', instructor: 'د. سارة الشمري',
+                        description: 'منصات التعليم الإلكتروني، تصميم المحتوى الرقمي، وإدارة الفصول الافتراضية.',
+                        videos: 16, icon: 'fa-graduation-cap' },
+                    { id: 75, title: 'الأمن السيبراني', code: 'SEC-301', instructor: 'د. مشعل المطيري',
+                        description: 'أمن المعلومات، الحماية من الاختراقات، وسياسات الأمان الرقمي.',
+                        videos: 18, icon: 'fa-shield-halved' }
+                ]
+            }, {
+                id: 'seu-business',
+                name: 'إدارة الأعمال',
+                icon: 'fa-chart-line',
+                subjects: [
+                    { id: 76, title: 'التسويق الإلكتروني', code: 'MKT-401', instructor: 'د. ليلى المطيري',
+                        description: 'استراتيجيات التسويق الرقمي، تحليل البيانات، وإعلانات السوشيال ميديا.',
+                        videos: 14, icon: 'fa-chart-simple' }
+                ]
+            }]
+        }, {
+            id: 'hbu',
+            name: 'جامعة حفر الباطن',
+            icon: 'fa-university',
+            founded: '1435 هـ',
+            specialties: [{
+                id: 'hbu-science',
+                name: 'العلوم',
+                icon: 'fa-flask',
+                subjects: [
+                    { id: 77, title: 'علوم الأرض', code: 'GEO-101', instructor: 'د. خالد العتيبي',
+                        description: 'طبقات الأرض، الزلازل، والبراكين.', videos: 12,
+                    icon: 'fa-globe' }
+                ]
+            }]
+        }, {
+            id: 'tu-2',
+            name: 'جامعة تبوك',
+            icon: 'fa-university',
+            founded: '1427 هـ',
+            specialties: [{
+                id: 'tu-science-2',
+                name: 'العلوم',
+                icon: 'fa-flask',
+                subjects: [
+                    { id: 78, title: 'البيئة', code: 'ENV-201', instructor: 'د. نورة القحطاني',
+                        description: 'الأنظمة البيئية، التنوع الحيوي، وحماية البيئة.', videos: 14,
+                        icon: 'fa-tree' }
+                ]
+            }]
+        }, {
+            id: 'ju-2',
+            name: 'جامعة جازان',
+            icon: 'fa-university',
+            founded: '1426 هـ',
+            specialties: [{
+                id: 'ju-medicine-2',
+                name: 'الطب',
+                icon: 'fa-heartbeat',
+                subjects: [
+                    { id: 79, title: 'الصحة العامة', code: 'PH-201', instructor: 'د. سعيد الغامدي',
+                        description: 'الوقاية من الأمراض، التثقيف الصحي، والإحصاء الحيوي.', videos: 14,
+                        icon: 'fa-heart-pulse' }
+                ]
+            }]
+        }, {
+            id: 'hu',
+            name: 'جامعة حائل',
+            icon: 'fa-university',
+            founded: '1426 هـ',
+            specialties: [{
+                id: 'hu-science',
+                name: 'العلوم',
+                icon: 'fa-flask',
+                subjects: [
+                    { id: 80, title: 'الكيمياء الحيوية', code: 'BCH-301', instructor: 'د. محمد القرني',
+                        description: 'الكيمياء الحيوية، الإنزيمات، والتمثيل الغذائي.', videos: 16,
+                        icon: 'fa-vial' }
+                ]
+            }]
+        }, {
+            id: 'arar',
+            name: 'جامعة عرعر',
+            icon: 'fa-university',
+            founded: '1428 هـ',
+            specialties: [{
+                id: 'arar-science',
+                name: 'العلوم',
+                icon: 'fa-flask',
+                subjects: [
+                    { id: 81, title: 'الزراعة', code: 'AGR-201', instructor: 'د. خالد المطيري',
+                        description: 'الزراعة المستدامة، التربة، والمحاصيل.', videos: 12,
+                        icon: 'fa-seedling' }
+                ]
+            }]
+        }, {
+            id: 'shaqra',
+            name: 'جامعة شقراء',
+            icon: 'fa-university',
+            founded: '1430 هـ',
+            specialties: [{
+                id: 'shaqra-science',
+                name: 'العلوم',
+                icon: 'fa-flask',
+                subjects: [
+                    { id: 82, title: 'الفلك', code: 'AST-101', instructor: 'د. محمد العيسى',
+                        description: 'مقدمة في الفلك، الكواكب، والمجرات.', videos: 12,
+                    icon: 'fa-stars' }
+                ]
+            }]
+        }, {
+            id: 'majmaah',
+            name: 'جامعة المجمعة',
+            icon: 'fa-university',
+            founded: '1432 هـ',
+            specialties: [{
+                id: 'majmaah-science',
+                name: 'العلوم',
+                icon: 'fa-flask',
+                subjects: [
+                    { id: 83, title: 'الفيزياء الطبية', code: 'MP-201', instructor: 'د. نورة السبيعي',
+                        description: 'تطبيقات الفيزياء في التشخيص والعلاج الطبي.', videos: 14,
+                        icon: 'fa-heart-pulse' }
+                ]
+            }]
+        }, {
+            id: 'bisha',
+            name: 'جامعة بيشة',
+            icon: 'fa-university',
+            founded: '1435 هـ',
+            specialties: [{
+                id: 'bisha-science',
+                name: 'العلوم',
+                icon: 'fa-flask',
+                subjects: [
+                    { id: 84, title: 'الجيولوجيا', code: 'GEO-301', instructor: 'د. خالد العتيبي',
+                        description: 'علم المعادن، الصخور، والتكوينات الجيولوجية.', videos: 12,
+                        icon: 'fa-mountain' }
+                ]
+            }]
+        }, {
+            id: 'jubail',
+            name: 'الكلية الجامعية بالجبيل',
+            icon: 'fa-industry',
+            founded: '1978 م',
+            specialties: [{
+                id: 'jubail-engineering',
+                name: 'الهندسة',
+                icon: 'fa-microchip',
+                subjects: [
+                    { id: 85, title: 'هندسة صناعية', code: 'IE-301', instructor: 'د. سعد الحارثي',
+                        description: 'تصميم العمليات، الإنتاج، وإدارة الجودة.', videos: 14,
+                        icon: 'fa-industry' }
+                ]
+            }]
+        }, {
+            id: 'yanbu',
+            name: 'الكلية الجامعية بينبع',
+            icon: 'fa-industry',
+            founded: '1989 م',
+            specialties: [{
+                id: 'yanbu-engineering',
+                name: 'الهندسة',
+                icon: 'fa-microchip',
+                subjects: [
+                    { id: 86, title: 'هندسة بحرية', code: 'ME-501', instructor: 'د. فهد الزهراني',
+                        description: 'تصميم السفن، المنشآت البحرية، والطاقة البحرية.', videos: 12,
+                        icon: 'fa-ship' }
+                ]
+            }]
+        }];
+
+        // ============================================================
+        // 2. استدعاء العناصر من DOM
+        // ============================================================
+        const grid = document.getElementById('subjectsGrid');
+        const searchInput = document.getElementById('searchInput');
+        const universitiesNav = document.getElementById('universitiesNav');
+        const specialtiesNav = document.getElementById('specialtiesNav');
+        const subjectCounter = document.getElementById('subjectCounter');
+
+        // ============================================================
+        // 3. حالة التطبيق
+        // ============================================================
+        let currentUniversity = 'ksu';
+        let currentSpecialty = null;
+        let currentSubjects = [];
+        let videoCounts = {};
+
+        // ============================================================
+        // 4. عرض الجامعات
+        // ============================================================
+        function renderUniversities() {
+            let html = '';
+            universitiesData.forEach(uni => {
+                const totalSubjects = uni.specialties.reduce((acc, spec) => acc + spec.subjects.length, 0);
+                html += `
+                    <button class="uni-btn ${uni.id === currentUniversity ? 'active' : ''}" 
+                            data-university="${uni.id}">
+                        <i class="fas ${uni.icon}"></i> ${uni.name}
+                        <span class="badge">${totalSubjects}</span>
+                    </button>
+                `;
+            });
+            universitiesNav.innerHTML = html;
+
+            document.querySelectorAll('.uni-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const uniId = this.dataset.university;
+                    currentUniversity = uniId;
+                    currentSpecialty = null;
+                    renderUniversities();
+                    renderSpecialties(uniId);
+                    loadSubjects(uniId, null);
+                    searchInput.value = '';
+                });
+            });
+        }
+
+        // ============================================================
+        // 5. عرض التخصصات
+        // ============================================================
+        function renderSpecialties(uniId) {
+            const university = universitiesData.find(u => u.id === uniId);
+            if (!university) {
+                specialtiesNav.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            // زر "جميع التخصصات"
+            html += `
+                <button class="spec-btn ${!currentSpecialty ? 'active' : ''}" 
+                        data-specialty="all" 
+                        onclick="selectSpecialty('${uniId}', null)">
+                    <i class="fas fa-th-list"></i> جميع التخصصات
+                </button>
+            `;
+            
+            university.specialties.forEach(spec => {
+                const isActive = currentSpecialty === spec.id;
+                html += `
+                    <button class="spec-btn ${isActive ? 'active' : ''}" 
+                            data-specialty="${spec.id}"
+                            onclick="selectSpecialty('${uniId}', '${spec.id}')">
+                        <i class="fas ${spec.icon}"></i> ${spec.name}
+                        <span style="font-size:11px; background:rgba(255,255,255,0.2); padding:0 8px; border-radius:12px; color:var(--text-muted);">
+                            ${spec.subjects.length}
+                        </span>
+                    </button>
+                `;
+            });
+            specialtiesNav.innerHTML = html;
+        }
+
+        // ============================================================
+        // 6. اختيار التخصص (دالة عامة يمكن استدعاؤها من onclick)
+        // ============================================================
+        function selectSpecialty(uniId, specId) {
+            currentSpecialty = specId;
+            // إعادة عرض التخصصات لتحديث الـ active
+            renderSpecialties(uniId);
+            // تحميل المواد حسب التخصص المختار
+            loadSubjects(uniId, specId);
+            searchInput.value = '';
+        }
+
+        // ============================================================
+        // 7. جلب عدد الفيديوهات لكل مادة
+        // ============================================================
+        async function getVideoCount(subjectId) {
+            try {
+                const response = await fetch(`http://localhost:5000/api/videos/subject/${subjectId}`);
+                const data = await response.json();
+                return data.count || 0;
+            } catch (error) {
+                console.error('خطأ في جلب عدد الفيديوهات:', error);
+                return 0;
+            }
+        }
+
+        async function loadAllVideoCounts(subjects) {
+            for (const subject of subjects) {
+                const count = await getVideoCount(subject.id);
+                videoCounts[subject.id] = count;
+            }
+        }
+
+        // ============================================================
+        // 8. تحميل وعرض المواد - الإصلاح الرئيسي هنا
+        // ============================================================
+        async function loadSubjects(uniId, specId) {
+            const university = universitiesData.find(u => u.id === uniId);
+            if (!university) {
+                currentSubjects = [];
+                renderCards([]);
+                return;
+            }
+
+            let subjects = [];
+            
+            // إذا كان التخصص محدداً، خذ المواد من هذا التخصص فقط
+            if (specId) {
+                const specialty = university.specialties.find(s => s.id === specId);
+                if (specialty) {
+                    subjects = specialty.subjects;
+                }
+            } else {
+                // وإلا خذ جميع المواد من جميع التخصصات
+                university.specialties.forEach(spec => {
+                    subjects = subjects.concat(spec.subjects);
+                });
+            }
+
+            currentSubjects = subjects;
+            
+            // جلب عدد الفيديوهات لكل مادة
+            await loadAllVideoCounts(currentSubjects);
+            
+            // عرض المواد
+            renderCards(currentSubjects);
+        }
+
+        // ============================================================
+        // 9. الانتقال إلى صفحة فيديوهات المادة
+        // ============================================================
+        function viewSubjectVideos(subjectId) {
+            let subject = null;
+            let specialtyName = '';
+            let universityName = '';
+
+            for (const uni of universitiesData) {
+                for (const spec of uni.specialties) {
+                    const found = spec.subjects.find(s => s.id === subjectId);
+                    if (found) {
+                        subject = found;
+                        specialtyName = spec.name;
+                        universityName = uni.name;
+                        break;
+                    }
+                }
+                if (subject) break;
+            }
+
+            if (!subject) {
+                alert('❌ لم يتم العثور على المادة');
+                return;
+            }
+
+            const encodedTitle = encodeURIComponent(subject.title);
+            const encodedCode = encodeURIComponent(subject.code);
+            const encodedSpecialty = encodeURIComponent(specialtyName);
+            const encodedUniversity = encodeURIComponent(universityName);
+
+            window.location.href =
+                `subject-videos.html?id=${subjectId}&title=${encodedTitle}&code=${encodedCode}&specialty=${encodedSpecialty}&university=${encodedUniversity}`;
+        }
+
+        // ============================================================
+        // 10. عرض البطاقات
+        // ============================================================
+        function renderCards(subjects) {
+            if (subjects.length === 0) {
+                grid.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-book-open"></i>
+                        لا توجد مواد في هذا التخصص حالياً
+                    </div>
+                `;
+                subjectCounter.textContent = '٠ مادة';
+                return;
+            }
+
+            let html = '';
+            subjects.forEach(s => {
+                const videoCount = videoCounts[s.id] || 0;
+                const colors = ['#dbeafe', '#fce7f3', '#dcfce7', '#e0f2fe', '#fef3c7', '#f1f5f9', '#fef9e7'];
+                const color = colors[s.id % colors.length];
+
+                html += `
+                    <div class="subject-card" data-aos="fade-up" data-aos-delay="${(s.id % 5) * 100}">
+                        <div class="card-header">
+                            <span class="subject-code"><i class="fas fa-tag"></i> ${s.code}</span>
+                            <div class="subject-icon" style="background:${color};">
+                                <i class="fas ${s.icon}"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h3>${s.title}</h3>
+                            <div class="instructor">
+                                <i class="fas fa-user-graduate"></i> ${s.instructor}
+                            </div>
+                            <p>${s.description}</p>
+                        </div>
+                        <div class="card-footer">
+                            <div class="stats">
+                                <span><i class="fas fa-video"></i> ${s.videos}</span>
+                                <span class="video-count"><i class="fas fa-film"></i> ${videoCount}</span>
+                            </div>
+                            <button class="btn-detail gold" onclick="viewSubjectVideos(${s.id})">
+                                <i class="fas fa-play"></i> عرض الشرح
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            grid.innerHTML = html;
+            subjectCounter.textContent = `${subjects.length} مادة`;
+
+            // تفعيل AOS للبطاقات الجديدة
+            if (typeof AOS !== 'undefined') {
+                AOS.refresh();
+            }
+        }
+
+        // ============================================================
+        // 11. البحث - الإصلاح هنا أيضاً
+        // ============================================================
+        function filterBySearch() {
+            const term = searchInput.value.trim().toLowerCase();
+            
+            // إذا كان حقل البحث فارغاً، قم بتحميل المواد حسب التخصص الحالي
+            if (!term) {
+                loadSubjects(currentUniversity, currentSpecialty);
+                return;
+            }
+
+            const university = universitiesData.find(u => u.id === currentUniversity);
+            if (!university) return;
+
+            let subjects = [];
+            
+            // جلب المواد حسب التخصص المحدد أو جميع المواد
+            if (currentSpecialty) {
+                const specialty = university.specialties.find(s => s.id === currentSpecialty);
+                if (specialty) {
+                    subjects = specialty.subjects;
+                }
+            } else {
+                university.specialties.forEach(spec => {
+                    subjects = subjects.concat(spec.subjects);
+                });
+            }
+
+            // فلترة المواد حسب مصطلح البحث
+            const filtered = subjects.filter(s =>
+                s.title.toLowerCase().includes(term) ||
+                s.code.toLowerCase().includes(term) ||
+                s.instructor.toLowerCase().includes(term) ||
+                s.description.toLowerCase().includes(term)
+            );
+
+            // تحديث الفيديوهات وعرض النتائج
+            (async () => {
+                await loadAllVideoCounts(filtered);
+                renderCards(filtered);
+            })();
+        }
+
+        searchInput.addEventListener('input', filterBySearch);
+
+        // ============================================================
+        // 12. تبديل الوضع (Dark/Light)
+        // ============================================================
+        let isDark = false;
+
+        function toggleTheme() {
+            isDark = !isDark;
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            const icon = document.querySelector('.theme-toggle i');
+            icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        if (localStorage.getItem('theme') === 'dark') {
+            isDark = true;
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.querySelector('.theme-toggle i').className = 'fas fa-sun';
+        }
+
+        // ============================================================
+        // 13. زر العودة للأعلى
+        // ============================================================
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('backToTop');
+            if (window.scrollY > 500) {
+                btn.classList.add('visible');
+            } else {
+                btn.classList.remove('visible');
+            }
+        });
+
+        // ============================================================
+        // 14. تفعيل AOS
+        // ============================================================
+        if (typeof AOS !== 'undefined') {
+            AOS.init({
+                duration: 800,
+                once: true,
+                offset: 50
+            });
+        }
+
+        // ============================================================
+        // 15. التشغيل الابتدائي
+        // ============================================================
+        renderUniversities();
+        renderSpecialties('ksu');
+        loadSubjects('ksu', null);
+
+        console.log('📚 تم تحميل قسم الشروحات بنجاح!');
+        console.log('🏛️ عدد الجامعات:', universitiesData.length);
+        const totalSubjects = universitiesData.reduce((acc, uni) => {
+            return acc + uni.specialties.reduce((a, spec) => a + spec.subjects.length, 0);
+        }, 0);
+        console.log('📚 عدد المواد:', totalSubjects);
+    </script>
+
+</body>
+</html>

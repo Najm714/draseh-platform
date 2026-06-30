@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سياسة الخصوصية - منصة ارتقاء</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6C4CE0;
+            --primary-dark: #5A3BC4;
+            --secondary: #00C9A7;
+            --dark: #1A1A2E;
+            --bg-body: #f8f9fa;
+            --bg-card: #ffffff;
+            --text-color: #2d3436;
+            --text-muted: #636e72;
+            --border-color: #e0e0e0;
+            --shadow: 0 10px 40px rgba(0,0,0,0.08);
+            --radius: 20px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-color);
+            direction: rtl;
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+
+        /* الهيدر */
+        .page-header {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 25px 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .page-header .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        .page-header .logo-icon {
+            background: var(--dark);
+            color: #f9c74f;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 700;
+        }
+        .page-header .logo-text {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+        .page-header .logo-text span { color: #f9c74f; }
+        .btn-back {
+            background: var(--bg-body);
+            color: var(--text-color);
+            padding: 8px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .btn-back:hover { background: var(--border-color); }
+
+        /* المحتوى */
+        .content-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 40px;
+            box-shadow: var(--shadow);
+        }
+        .content-card h1 {
+            font-size: 2.2rem;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+        .content-card h1 span {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .content-card .last-updated {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .content-card h2 {
+            font-size: 1.4rem;
+            color: var(--dark);
+            margin: 25px 0 15px;
+        }
+        .content-card h2 i { color: var(--primary); margin-left: 10px; }
+        .content-card p {
+            color: var(--text-color);
+            line-height: 1.9;
+            margin-bottom: 15px;
+        }
+        .content-card ul {
+            list-style: none;
+            margin: 15px 0 25px;
+        }
+        .content-card ul li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .content-card ul li i {
+            color: var(--secondary);
+            width: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .page-header { flex-direction: column; align-items: stretch; text-align: center; }
+            .content-card { padding: 25px; }
+            .content-card h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- الهيدر -->
+        <header class="page-header">
+            <a href="index.html" class="logo-area">
+                <div class="logo-icon"><i class="fas fa-rocket"></i></div>
+                <div class="logo-text">منصة <span>ارتقاء</span></div>
+            </a>
+            <a href="index.html" class="btn-back">
+                <i class="fas fa-arrow-right"></i> العودة للرئيسية
+            </a>
+        </header>
+
+        <!-- المحتوى -->
+        <div class="content-card">
+            <h1>🔒 <span>سياسة الخصوصية</span></h1>
+            <div class="last-updated">📅 آخر تحديث: 29 يونيو 2026</div>
+
+            <p>نحن في <strong>منصة ارتقاء</strong> نولي خصوصية بياناتك أهمية بالغة. توضح هذه السياسة كيفية جمع واستخدام وحماية معلوماتك الشخصية عند استخدامك لمنصتنا.</p>
+
+            <h2><i class="fas fa-database"></i> المعلومات التي نجمعها</h2>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> <strong>معلومات الحساب:</strong> الاسم، البريد الإلكتروني، رقم الجوال، والجامعة.</li>
+                <li><i class="fas fa-check-circle"></i> <strong>بيانات الاستخدام:</strong> المعلومات المتعلقة بطلباتك، الخدمات التي تستخدمها، والملفات التي ترفعها.</li>
+                <li><i class="fas fa-check-circle"></i> <strong>معلومات تقنية:</strong> عنوان IP، نوع المتصفح، ونظام التشغيل.</li>
+            </ul>
+
+            <h2><i class="fas fa-shield-alt"></i> كيف نستخدم معلوماتك</h2>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> تقديم الخدمات الأكاديمية التي تطلبها.</li>
+                <li><i class="fas fa-check-circle"></i> تحسين تجربة المستخدم وتطوير المنصة.</li>
+                <li><i class="fas fa-check-circle"></i> التواصل معك بشأن طلباتك وتحديثات الخدمة.</li>
+                <li><i class="fas fa-check-circle"></i> الامتثال للمتطلبات القانونية والتنظيمية.</li>
+            </ul>
+
+            <h2><i class="fas fa-lock"></i> حماية بياناتك</h2>
+            <p>نحن نلتزم بتطبيق أعلى معايير الأمان لحماية بياناتك، بما في ذلك:</p>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> تشفير البيانات أثناء النقل (SSL/TLS).</li>
+                <li><i class="fas fa-check-circle"></i> تخزين آمن للمعلومات في قواعد بيانات محمية.</li>
+                <li><i class="fas fa-check-circle"></i> سياسات صارمة للتحكم في الوصول إلى البيانات.</li>
+            </ul>
+
+            <h2><i class="fas fa-users"></i> مشاركة المعلومات</h2>
+            <p>لا نقوم ببيع أو مشاركة معلوماتك الشخصية مع أطراف ثالثة، باستثناء الحالات التالية:</p>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> مع موفري الخدمات الذين يساعدوننا في تشغيل المنصة (مثل استضافة الخادم).</li>
+                <li><i class="fas fa-check-circle"></i> عند تطلب القانون ذلك (مثل أمر قضائي).</li>
+                <li><i class="fas fa-check-circle"></i> لحماية حقوقنا أو سلامة مستخدمينا.</li>
+            </ul>
+
+            <h2><i class="fas fa-cookie-bite"></i> ملفات تعريف الارتباط (Cookies)</h2>
+            <p>نستخدم ملفات تعريف الارتباط لتحسين تجربتك على المنصة، مثل تذكر تفضيلاتك وتحليل كيفية استخدامك للخدمة. يمكنك إدارة تفضيلات ملفات الارتباط من خلال إعدادات المتصفح الخاص بك.</p>
+
+            <h2><i class="fas fa-user-edit"></i> حقوقك</h2>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> الوصول إلى بياناتك الشخصية وتحديثها.</li>
+                <li><i class="fas fa-check-circle"></i> طلب حذف بياناتك (مع مراعاة الالتزامات القانونية).</li>
+                <li><i class="fas fa-check-circle"></i> إلغاء الاشتراك في رسائل التسويق.</li>
+            </ul>
+
+            <h2><i class="fas fa-envelope"></i> الاتصال بنا</h2>
+            <p>إذا كان لديك أي استفسار حول سياسة الخصوصية، يمكنك التواصل معنا عبر:</p>
+            <ul>
+                <li><i class="fas fa-envelope"></i> البريد الإلكتروني: <a href="mailto:info@irteqa.com">info@irteqa.com</a></li>
+                <li><i class="fas fa-phone"></i> الهاتف: <a href="tel:+966548504018">+966 54 850 4018</a></li>
+            </ul>
+        </div>
+    </div>
+
+</body>
+</html>
