@@ -5,7 +5,7 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const MONGO_URI = process.env.MONGO_URI || 'MONGO_URI=mongodb+srv://alqadynjm088_db_user:miaiLDGxIe5Wk0WH@cluster0.ctsx5vv.mongodb.net/draseh_platform?retryWrites=true&w=majority&appName=Cluster0';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/draseh_platform';
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ تم الاتصال بقاعدة البيانات'))
@@ -23,9 +23,9 @@ const User = mongoose.model('User', UserSchema);
 
 async function createAdmin() {
     try {
-        // حذف المستخدم القديم إذا كان موجوداً
+        // حذف المستخدم القديم إن وجد
         await User.deleteOne({ email: 'admin@drasah.com' });
-        console.log('🗑️ تم حذف المستخدم القديم (إن وجد)');
+        console.log('🗑️ تم حذف المستخدم القديم');
 
         // تشفير كلمة المرور
         const salt = await bcrypt.genSalt(10);

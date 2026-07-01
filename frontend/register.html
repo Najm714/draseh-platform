@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء حساب - منصة ارتقاء</title>
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #7C3AED;
+            --primary-dark: #6D28D9;
+            --secondary: #EC4899;
+            --dark: #0F172A;
+            --bg-body: #F1F5F9;
+            --bg-card: #FFFFFF;
+            --text-color: #0F172A;
+            --text-muted: #64748B;
+            --border-color: #E2E8F0;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            --radius: 20px;
+            --gradient-main: linear-gradient(135deg, #7C3AED, #EC4899);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-color);
+            direction: rtl;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .register-container {
+            max-width: 440px;
+            width: 100%;
+            background: var(--bg-card);
+            padding: 45px 40px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .register-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--gradient-main);
+        }
+
+        .register-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .register-logo .logo-icon {
+            font-size: 3rem;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .register-logo h1 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--text-color);
+            margin-top: 10px;
+        }
+
+        .register-logo h1 span {
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .register-logo p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+
+        .form-group label i {
+            color: var(--primary);
+            margin-left: 8px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'Cairo', sans-serif;
+            transition: 0.3s;
+            background: var(--bg-body);
+            color: var(--text-color);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 14px;
+            background: var(--gradient-main);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-register:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .error-msg {
+            background: #FEE2E2;
+            color: #991B1B;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid #FCA5A5;
+        }
+
+        .error-msg.show { display: block; }
+
+        .success-msg {
+            background: #D1FAE5;
+            color: #065F46;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid #A7F3D0;
+        }
+
+        .success-msg.show { display: block; }
+
+        .register-footer {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .register-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .register-footer a:hover { text-decoration: underline; }
+
+        @media (max-width: 480px) {
+            .register-container {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="register-container">
+        <div class="register-logo">
+            <div class="logo-icon">
+                <i class="fas fa-rocket"></i>
+            </div>
+            <h1>منصة <span>ارتقاء</span></h1>
+            <p>إنشاء حساب جديد</p>
+        </div>
+
+        <div class="error-msg" id="registerError">❌ حدث خطأ في التسجيل</div>
+        <div class="success-msg" id="registerSuccess">✅ تم إنشاء الحساب بنجاح!</div>
+
+        <form id="registerForm">
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> الاسم الكامل</label>
+                <input type="text" id="registerName" placeholder="أدخل اسمك الكامل" required>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
+                <input type="email" id="registerEmail" placeholder="example@email.com" required>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> كلمة المرور</label>
+                <input type="password" id="registerPassword" placeholder="•••••••• (6 أحرف على الأقل)" required minlength="6">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-user-tag"></i> نوع الحساب</label>
+                <select id="registerRole">
+                    <option value="user">مستخدم عادي</option>
+                    <option value="expert">خبير</option>
+                    <option value="admin">مدير</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-register" id="registerBtn">
+                <i class="fas fa-user-plus"></i> إنشاء حساب
+            </button>
+        </form>
+
+        <div class="register-footer">
+            لديك حساب بالفعل؟ <a href="login.html">تسجيل الدخول</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value.trim();
+            const role = document.getElementById('registerRole').value;
+
+            const errorEl = document.getElementById('registerError');
+            const successEl = document.getElementById('registerSuccess');
+            const btn = document.getElementById('registerBtn');
+
+            errorEl.classList.remove('show');
+            successEl.classList.remove('show');
+
+            if (!name || !email || !password) {
+                errorEl.textContent = '❌ يرجى ملء جميع الحقول المطلوبة';
+                errorEl.classList.add('show');
+                return;
+            }
+
+            if (password.length < 6) {
+                errorEl.textContent = '❌ كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+                errorEl.classList.add('show');
+                return;
+            }
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري إنشاء الحساب...';
+            btn.disabled = true;
+
+            try {
+                const API_URL = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:5000' 
+                    : 'https://draseh-platform-1.onrender.com';
+
+                const response = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, role })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    successEl.textContent = '✅ ' + data.message;
+                    successEl.classList.add('show');
+                    document.getElementById('registerForm').reset();
+                    
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    errorEl.textContent = '❌ ' + (data.message || 'حدث خطأ في التسجيل');
+                    errorEl.classList.add('show');
+                }
+            } catch (error) {
+                console.error('❌ خطأ:', error);
+                errorEl.textContent = '❌ حدث خطأ في الاتصال بالخادم';
+                errorEl.classList.add('show');
+            } finally {
+                btn.innerHTML = '<i class="fas fa-user-plus"></i> إنشاء حساب';
+                btn.disabled = false;
+            }
+        });
+    </script>
+
+</body>
+</html>

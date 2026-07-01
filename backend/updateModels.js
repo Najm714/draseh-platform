@@ -6,7 +6,7 @@ const Model = require('./models/Model');
 async function updateExistingModels() {
     try {
         // الاتصال بقاعدة البيانات
-        await mongoose.connect('MONGO_URI=mongodb+srv://alqadynjm088_db_user:miaiLDGxIe5Wk0WH@cluster0.ctsx5vv.mongodb.net/draseh_platform?retryWrites=true&w=majority&appName=Cluster0');
+        await mongoose.connect('MONGO_URI=mongodb://localhost:27017/draseh_platform');
         console.log('✅ تم الاتصال بقاعدة البيانات');
 
         // جلب جميع النماذج

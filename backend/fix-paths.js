@@ -1,16 +1,14 @@
 // backend/fix-paths.js
 const mongoose = require('mongoose');
-const path = require('path');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
-// الاتصال بقاعدة البيانات
-const MONGO_URI = process.env.MONGO_URI || 'MONGO_URI=mongodb+srv://alqadynjm088_db_user:miaiLDGxIe5Wk0WH@cluster0.ctsx5vv.mongodb.net/draseh_platform?retryWrites=true&w=majority&appName=Cluster0';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/draseh_platform';
 
-mongoose.connect(mongoURI)
+mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ تم الاتصال بقاعدة البيانات'))
-    .catch(err => console.error('❌ خطأ في الاتصال:', err));
+    .catch(err => console.error('❌ فشل الاتصال:', err));
 
 const OrderSchema = new mongoose.Schema({
     files: [{
@@ -25,7 +23,7 @@ const Order = mongoose.model('Order', OrderSchema);
 
 async function fixFilePaths() {
     try {
-        console.log('🔍 جاري البحث عن الطلبات التي تحتوي على ملفات...');
+        console.log('🔍 جاري البحث عن الملفات ذات المسارات الكاملة...');
         
         const orders = await Order.find({ 'files.0': { $exists: true } });
         console.log(`📦 تم العثور على ${orders.length} طلب يحتوي على ملفات`);
@@ -36,14 +34,15 @@ async function fixFilePaths() {
             let updated = false;
             
             order.files = order.files.map(file => {
-                // التحقق إذا كان المسار يحتوي على مسار كامل
+                // التحقق إذا كان المسار كاملاً
                 if (file.path && (file.path.includes('C:/') || file.path.includes('C:\\') || file.path.includes('backend'))) {
-                    // استخراج اسم الملف من المسار الكامل
+                    // استخراج اسم الملف
                     const fileName = file.path.split('/').pop().split('\\').pop();
-                    // حفظ المسار النسبي فقط
-                    file.path = `uploads/${fileName}`;
+                    // حفظ المسار النسبي
+                    const newPath = `uploads/${fileName}`;
+                    console.log(`✅ تحديث: ${file.path} → ${newPath}`);
+                    file.path = newPath;
                     updated = true;
-                    console.log(`✅ تم تحديث مسار الملف: ${fileName}`);
                 }
                 return file;
             });
@@ -56,6 +55,7 @@ async function fixFilePaths() {
         }
         
         console.log(`🎉 تم تحديث ${fixedCount} طلب بنجاح!`);
+        console.log('✅ يمكنك الآن تحميل الملفات بشكل صحيح');
         process.exit(0);
     } catch (error) {
         console.error('❌ خطأ:', error);

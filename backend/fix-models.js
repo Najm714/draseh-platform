@@ -5,7 +5,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 // الاتصال بقاعدة البيانات
-const MONGO_URI = process.env.MONGO_URI || 'MONGO_URI=mongodb+srv://alqadynjm088_db_user:miaiLDGxIe5Wk0WH@cluster0.ctsx5vv.mongodb.net/draseh_platform?retryWrites=true&w=majority&appName=Cluster0';
+const MONGO_URI = process.env.MONGO_URI || 'MONGO_URI=mongodb://localhost:27017/draseh_platform';
 
 mongoose.connect(mongoURI)
     .then(() => console.log('✅ تم الاتصال بقاعدة البيانات'))

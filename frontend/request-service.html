@@ -1211,7 +1211,7 @@
             if (!currentToken || !currentUser) {
                 showAlert('❌ يرجى تسجيل الدخول أولاً', 'danger');
                 setTimeout(() => {
-                    window.location.href = 'index.html';
+                    window.location.href = 'login.html';
                 }, 1500);
                 return;
             }
@@ -1238,10 +1238,15 @@
                     title: title,
                     description: description,
                     deadline: new Date(deadline + 'T00:00:00.000Z').toISOString(),
-                    budget: 0
+                    budget: 0,
+                    status: 'pending'  // ✅ أضف الحالة الافتراضية
                 };
 
-                const response = await fetch('http://localhost:5000/api/orders', {
+                const API_URL = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:5000' 
+                    : 'https://draseh-platform-1.onrender.com';
+
+                const response = await fetch(`${API_URL}/api/orders`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${currentToken}`,
@@ -1268,7 +1273,7 @@
                         formData.append('files', selectedFiles[i]);
                     }
 
-                    const uploadResponse = await fetch(`http://localhost:5000/api/orders/${orderId}/upload`, {
+                    const uploadResponse = await fetch(`${API_URL}/api/orders/${orderId}/upload`, {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${currentToken}`
@@ -1295,7 +1300,7 @@
 
             } catch (error) {
                 console.error('❌ خطأ:', error);
-                showAlert('❌ حدث خطأ في الاتصال بالخادم', 'danger');
+                showAlert('❌ حدث خطأ في الخادم الداخلي. يرجى المحاولة مرة أخرى لاحقاً.', 'danger');
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;

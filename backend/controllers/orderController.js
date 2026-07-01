@@ -53,56 +53,41 @@ exports.getMyOrders = async (req, res) => {
     }
 };
 
-// ===========================================
-// 3. جلب طلبات الخبير
-// ===========================================
-exports.getExpertOrders = async (req, res) => {
+// ============================================================
+// جلب طلبات الخبير مع الملفات
+// ============================================================
+app.get('/api/orders/expert', protect, authorize('expert'), async (req, res) => {
     try {
-        const orders = await Order.find({ assignedExpert: req.user.id })
-            .populate('user', 'name email')
-            .sort({ createdAt: -1 });
+        const Order = require('./models/Order');
+        
+        // ✅ جلب جميع الطلبات المسندة إلى هذا الخبير
+        const orders = await Order.find({ 
+            assignedExpert: req.user.id 
+        })
+        .populate('user', 'name email')
+        .populate('assignedExpert', 'name email')
+        .sort({ assignedAt: -1, createdAt: -1 });
+            
+        // ✅ إضافة معلومات إضافية لكل طلب
+        const ordersWithDetails = orders.map(order => ({
+            ...order.toObject(),
+            filesCount: order.files?.length || 0,
+            totalFilesSize: order.files?.reduce((acc, f) => acc + (f.size || 0), 0) || 0
+        }));
+
         res.status(200).json({
             success: true,
             count: orders.length,
-            data: orders
+            data: ordersWithDetails
         });
     } catch (error) {
         console.error('❌ خطأ في جلب طلبات الخبير:', error);
-        if (error.name === 'CastError' || (error.message && error.message.includes('CastError'))) {
-            return res.status(200).json({
-                success: true,
-                count: 0,
-                data: []
-            });
-        }
-        res.status(500).json({
-            success: false,
-            message: error.message
+        res.status(500).json({ 
+            success: false, 
+            message: 'حدث خطأ في جلب الطلبات' 
         });
     }
-};
-
-// ===========================================
-// 4. جلب جميع الطلبات (للمدير)
-// ===========================================
-exports.getAllOrders = async (req, res) => {
-    try {
-        const orders = await Order.find()
-            .populate('user', 'name email')
-            .sort({ createdAt: -1 });
-        res.status(200).json({
-            success: true,
-            count: orders.length,
-            data: orders
-        });
-    } catch (error) {
-        console.error('❌ خطأ في جلب جميع الطلبات:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-};
+});
 
 // ===========================================
 // 5. جلب طلب محدد بالمعرف

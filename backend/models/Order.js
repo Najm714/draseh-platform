@@ -1,51 +1,62 @@
+// backend/models/Order.js
 const mongoose = require('mongoose');
 
-const orderSchema = new mongoose.Schema({
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
+const OrderSchema = new mongoose.Schema({
     serviceType: {
         type: String,
-        enum: ['proposal', 'translation', 'statistics', 'proofreading', 'other'],
-        required: true
+        required: true,
+        default: 'خدمة'
     },
     title: {
         type: String,
-        required: [true, 'عنوان الطلب مطلوب']
+        required: true
     },
     description: {
         type: String,
-        required: [true, 'وصف الطلب مطلوب']
-    },
-    files: [{
-        filename: String,
-        path: String,
-        uploadDate: {
-            type: Date,
-            default: Date.now
-        }
-    }],
-    status: {
-        type: String,
-        enum: ['pending', 'in-progress', 'completed', 'revision', 'cancelled'],
-        default: 'pending'
+        required: true
     },
     deadline: {
         type: Date,
-        required: [true, 'الموعد النهائي مطلوب']
+        required: true
     },
     budget: {
         type: Number,
         default: 0
     },
+    status: {
+        type: String,
+        enum: ['pending', 'in-progress', 'completed', 'revision', 'cancelled'],
+        default: 'pending'
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false
+    },
     assignedExpert: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
+        required: false
+    },
+    expertNotes: {
+        type: String,
+        default: ''
+    },
+    files: [{
+        filename: String,
+        path: String,
+        size: Number,
+        uploadDate: {
+            type: Date,
+            default: Date.now
+        }
+    }],
+    assignedAt: {
+        type: Date,
+        default: null
     }
 }, {
     timestamps: true
 });
 
-module.exports = mongoose.model('Order', orderSchema);
+module.exports = mongoose.model('Order', OrderSchema);
