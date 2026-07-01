@@ -1,3 +1,4 @@
+// backend/controllers/orderController.js
 const Order = require('../models/Order');
 
 // ===========================================
@@ -53,44 +54,8 @@ exports.getMyOrders = async (req, res) => {
     }
 };
 
-// ============================================================
-// جلب طلبات الخبير مع الملفات
-// ============================================================
-app.get('/api/orders/expert', protect, authorize('expert'), async (req, res) => {
-    try {
-        const Order = require('./models/Order');
-        
-        // ✅ جلب جميع الطلبات المسندة إلى هذا الخبير
-        const orders = await Order.find({ 
-            assignedExpert: req.user.id 
-        })
-        .populate('user', 'name email')
-        .populate('assignedExpert', 'name email')
-        .sort({ assignedAt: -1, createdAt: -1 });
-            
-        // ✅ إضافة معلومات إضافية لكل طلب
-        const ordersWithDetails = orders.map(order => ({
-            ...order.toObject(),
-            filesCount: order.files?.length || 0,
-            totalFilesSize: order.files?.reduce((acc, f) => acc + (f.size || 0), 0) || 0
-        }));
-
-        res.status(200).json({
-            success: true,
-            count: orders.length,
-            data: ordersWithDetails
-        });
-    } catch (error) {
-        console.error('❌ خطأ في جلب طلبات الخبير:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'حدث خطأ في جلب الطلبات' 
-        });
-    }
-});
-
 // ===========================================
-// 5. جلب طلب محدد بالمعرف
+// 3. جلب طلب محدد بالمعرف
 // ===========================================
 exports.getOrderById = async (req, res) => {
     try {
@@ -137,7 +102,7 @@ exports.getOrderById = async (req, res) => {
 };
 
 // ===========================================
-// 6. تحديث طلب
+// 4. تحديث طلب
 // ===========================================
 exports.updateOrder = async (req, res) => {
     try {
@@ -187,7 +152,7 @@ exports.updateOrder = async (req, res) => {
 };
 
 // ===========================================
-// 7. حذف طلب
+// 5. حذف طلب
 // ===========================================
 exports.deleteOrder = async (req, res) => {
     try {
@@ -227,7 +192,7 @@ exports.deleteOrder = async (req, res) => {
 };
 
 // ===========================================
-// 8. رفع ملفات لطلب محدد
+// 6. رفع ملفات لطلب محدد
 // ===========================================
 exports.uploadFiles = async (req, res) => {
     try {
