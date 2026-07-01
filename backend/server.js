@@ -155,17 +155,34 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 // تسجيل الدخول
+// ============================================================
 app.post('/api/auth/login', async (req, res) => {
     try {
         const bcrypt = require('bcryptjs');
         const jwt = require('jsonwebtoken');
         const { email, password } = req.body;
 
+        // ✅ التحقق من وجود البريد وكلمة المرور
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: 'البريد الإلكتروني وكلمة المرور مطلوبان'
+            });
+        }
+
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(401).json({
                 success: false,
                 message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+            });
+        }
+
+        // ✅ التحقق من وجود كلمة المرور في قاعدة البيانات
+        if (!user.password) {
+            return res.status(500).json({
+                success: false,
+                message: 'خطأ في بيانات المستخدم، يرجى التواصل مع الدعم'
             });
         }
 
@@ -196,7 +213,10 @@ app.post('/api/auth/login', async (req, res) => {
         });
     } catch (error) {
         console.error('❌ خطأ في تسجيل الدخول:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 });
 
@@ -224,11 +244,13 @@ app.get('/api/auth/me', async (req, res) => {
 // ============================================================
 // 2. مسارات الفيديوهات (VIDEOS)
 // ============================================================
-// ============================================================
-
 // رفع فيديو جديد
+// ============================================================
 app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => {
     try {
+        console.log('📁 استلام فيديو:', req.file);
+        console.log('📦 بيانات:', req.body);
+
         if (!req.file) {
             return res.status(400).json({
                 success: false,
@@ -245,22 +267,26 @@ app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => 
             });
         }
 
+        // ✅ إنشاء الفيديو مع fileName من req.file
         const video = new Video({
-            title,
+            title: title,
             subjectId: parseInt(subjectId),
-            subjectName,
+            subjectName: subjectName,
             specialtyName: specialtyName || '',
             universityName: universityName || '',
             description: description || '',
-            fileName: req.file.filename,
+            fileName: req.file.filename,  // ✅ من multer
             filePath: req.file.path,
             fileSize: (req.file.size / (1024 * 1024)).toFixed(2) + ' MB',
             fileType: req.file.mimetype,
             uploadDate: new Date(),
             views: 0
+            // uploadedBy: req.user?.id  // ✅ اختياري
         });
 
         await video.save();
+
+        console.log('✅ تم رفع الفيديو:', video.title);
 
         res.status(201).json({
             success: true,
@@ -269,7 +295,10 @@ app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => 
         });
     } catch (error) {
         console.error('❌ خطأ في رفع الفيديو:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 });
 

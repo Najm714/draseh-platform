@@ -5,14 +5,12 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-// الاتصال بقاعدة البيانات
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/draseh_platform';
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ تم الاتصال بقاعدة البيانات'))
     .catch(err => console.error('❌ فشل الاتصال:', err));
 
-// تعريف نموذج المستخدم
 const UserSchema = new mongoose.Schema({
     name: String,
     email: String,
@@ -25,18 +23,15 @@ const User = mongoose.model('User', UserSchema);
 
 async function createAdmin() {
     try {
-        // التحقق من وجود المدير
         const existingAdmin = await User.findOne({ email: 'admin@drasah.com' });
         if (existingAdmin) {
             console.log('⚠️ المدير موجود بالفعل!');
             process.exit(0);
         }
 
-        // تشفير كلمة المرور
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash('Admin@123456', salt);
 
-        // إنشاء المدير
         const admin = new User({
             name: 'مدير النظام',
             email: 'admin@drasah.com',
