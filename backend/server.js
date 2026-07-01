@@ -38,6 +38,8 @@ if (!fs.existsSync(videosDir)) {
 // ============================================================
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads/videos', express.static(path.join(__dirname, 'uploads', 'videos')));
+app.use(express.static(path.join(__dirname, '../frontend')));
+
 
 // ============================================================
 // الاتصال بقاعدة البيانات - ✅ تم الإصلاح هنا
