@@ -2105,6 +2105,7 @@
         <div class="auth-modal-content">
             <button class="close" onclick="closeAuth()">✕</button>
             <h2 id="authTitle">تسجيل الدخول</h2>
+            <div class="error-msg" id="loginError"></div>
             <form id="loginForm">
                 <div class="form-group">
                     <label>البريد الإلكتروني</label>
@@ -2117,6 +2118,8 @@
                 <button type="submit" class="btn-primary" style="width:100%; padding:14px;">تسجيل الدخول</button>
             </form>
             <div style="text-align:center; margin:20px 0; color:var(--text-muted);">أو</div>
+            <div class="error-msg" id="registerError"></div>
+            <div class="success-msg" id="registerSuccess"></div>
             <form id="registerForm">
                 <div class="form-group">
                     <label>الاسم الكامل</label>
@@ -2129,6 +2132,14 @@
                 <div class="form-group">
                     <label>كلمة المرور</label>
                     <input type="password" id="registerPassword" placeholder="6 أحرف على الأقل" required />
+                </div>
+                <div class="form-group">
+                    <label>نوع الحساب</label>
+                    <select id="registerRole">
+                        <option value="user">مستخدم عادي</option>
+                        <option value="expert">خبير</option>
+                        <option value="admin">مدير</option>
+                    </select>
                 </div>
                 <button type="submit" class="btn-primary" style="width:100%; padding:14px; background:var(--gradient-secondary);">إنشاء حساب جديد</button>
             </form>
@@ -2823,12 +2834,13 @@
         });
 
         // ============================================================
-        // نظام المصادقة
+        // نظام المصادقة الموحد - الإصدار النهائي
         // ============================================================
         let currentToken = localStorage.getItem('token') || '';
         let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
         let isLoginMode = true;
 
+        // تحديث زر الدخول
         function updateAuthButton() {
             const btn = document.getElementById('authButton');
             if (currentToken && currentUser) {
@@ -2847,8 +2859,14 @@
         }
 
         function showAuth() {
-            document.getElementById('authModal').classList.add('show');
-            document.getElementById('authTitle').textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب جديد';
+            const modal = document.getElementById('authModal');
+            if (modal) {
+                modal.classList.add('show');
+                document.getElementById('authTitle').textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب جديد';
+                document.getElementById('loginError').style.display = 'none';
+                document.getElementById('registerError').style.display = 'none';
+                document.getElementById('registerSuccess').style.display = 'none';
+            }
         }
 
         function closeAuth() {
@@ -2860,6 +2878,9 @@
             document.getElementById('authTitle').textContent = isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب جديد';
             document.getElementById('loginForm').style.display = isLoginMode ? 'block' : 'none';
             document.getElementById('registerForm').style.display = isLoginMode ? 'none' : 'block';
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('registerError').style.display = 'none';
+            document.getElementById('registerSuccess').style.display = 'none';
         }
 
         function logout() {
@@ -2869,22 +2890,45 @@
             currentUser = null;
             alert('تم تسجيل الخروج بنجاح');
             updateAuthButton();
-            location.reload();
+            window.location.reload();
         }
 
-        // تسجيل الدخول
+        // ============================================================
+        // معالجة تسجيل الدخول
+        // ============================================================
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const errorEl = document.getElementById('loginError');
+
+            // إخفاء الرسائل السابقة
+            errorEl.style.display = 'none';
+            errorEl.textContent = '';
+
+            if (!email || !password) {
+                errorEl.textContent = '❌ يرجى إدخال البريد الإلكتروني وكلمة المرور';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const btn = this.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...';
+            btn.disabled = true;
 
             try {
-                const response = await fetch('https://draseh-platform-1.onrender.com/api/auth/login', {
+                const API_URL = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:5000' 
+                    : 'https://draseh-platform-1.onrender.com';
+
+                const response = await fetch(`${API_URL}/api/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
-                const data = await res.json();
+
+                const data = await response.json();
 
                 if (data.success) {
                     localStorage.setItem('token', data.token);
@@ -2902,40 +2946,88 @@
                         window.location.href = 'dashboard.html';
                     }
                 } else {
-                    alert('❌ ' + data.message);
+                    errorEl.textContent = '❌ ' + (data.message || 'بيانات الدخول غير صحيحة');
+                    errorEl.style.display = 'block';
                 }
             } catch (error) {
-                alert('❌ حدث خطأ في تسجيل الدخول');
-                console.error(error);
+                console.error('❌ خطأ:', error);
+                errorEl.textContent = '❌ حدث خطأ في الاتصال بالخادم. تأكد من أن الخادم يعمل.';
+                errorEl.style.display = 'block';
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         });
 
-        // التسجيل
+        // ============================================================
+        // معالجة التسجيل
+        // ============================================================
         document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const name = document.getElementById('registerName').value;
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value.trim();
+            const role = document.getElementById('registerRole').value;
+            const errorEl = document.getElementById('registerError');
+            const successEl = document.getElementById('registerSuccess');
+
+            // إخفاء الرسائل السابقة
+            errorEl.style.display = 'none';
+            errorEl.textContent = '';
+            successEl.style.display = 'none';
+            successEl.textContent = '';
+
+            if (!name || !email || !password) {
+                errorEl.textContent = '❌ يرجى ملء جميع الحقول المطلوبة';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            if (password.length < 6) {
+                errorEl.textContent = '❌ كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const btn = this.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري إنشاء الحساب...';
+            btn.disabled = true;
 
             try {
-                const res = await fetch('https://draseh-platform-1.onrender.com/api/auth/register', {
+                const API_URL = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:5000' 
+                    : 'https://draseh-platform-1.onrender.com';
+
+                const response = await fetch(`${API_URL}/api/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password })
+                    body: JSON.stringify({ name, email, password, role })
                 });
-                const data = await res.json();
+
+                const data = await response.json();
 
                 if (data.success) {
-                    alert('✅ تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن.');
-                    isLoginMode = true;
-                    toggleAuthForm();
-                    document.getElementById('loginEmail').value = email;
+                    successEl.textContent = '✅ ' + data.message;
+                    successEl.style.display = 'block';
+                    this.reset();
+                    setTimeout(() => {
+                        isLoginMode = true;
+                        toggleAuthForm();
+                        document.getElementById('loginEmail').value = email;
+                        successEl.style.display = 'none';
+                    }, 2000);
                 } else {
-                    alert('❌ ' + (data.message || 'حدث خطأ في التسجيل'));
+                    errorEl.textContent = '❌ ' + (data.message || 'حدث خطأ في التسجيل');
+                    errorEl.style.display = 'block';
                 }
             } catch (error) {
-                alert('❌ حدث خطأ في إنشاء الحساب');
-                console.error(error);
+                console.error('❌ خطأ:', error);
+                errorEl.textContent = '❌ حدث خطأ في الاتصال بالخادم';
+                errorEl.style.display = 'block';
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         });
 
@@ -2944,7 +3036,10 @@
             if (e.target === this) closeAuth();
         });
 
-        updateAuthButton();
+        // تحديث زر الدخول عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            updateAuthButton();
+        });
 
         console.log('🚀 منصة ارتقاء تعمل بنجاح!');
         console.log('🎨 تم تحديث الألوان والتصميم بشكل جذاب');
