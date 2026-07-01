@@ -1,3 +1,4 @@
+// backend/models/Video.js
 const mongoose = require('mongoose');
 
 const videoSchema = new mongoose.Schema({
@@ -14,6 +15,14 @@ const videoSchema = new mongoose.Schema({
     subjectName: {
         type: String,
         required: true
+    },
+    specialtyName: {
+        type: String,
+        default: ''
+    },
+    universityName: {
+        type: String,
+        default: ''
     },
     description: {
         type: String,
@@ -38,7 +47,7 @@ const videoSchema = new mongoose.Schema({
     uploadedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: false  // ✅ تغيير إلى false
     },
     views: {
         type: Number,

@@ -54,7 +54,21 @@ mongoose.connect(MONGO_URI)
     .catch(err => console.error('❌ فشل الاتصال بقاعدة البيانات:', err.message));
 
 // ============================================================
-// المسار الرئيسي (الصفحة الرئيسية للـ API)
+// استيراد النماذج (Models)
+// ============================================================
+const Video = require('./models/Video');
+const Model = require('./models/Model');
+const Order = require('./models/Order');
+const User = require('./models/User');
+
+// ============================================================
+// استيراد الميدل وير
+// ============================================================
+const uploadVideo = require('./middleware/uploadVideo');
+const upload = require('./middleware/upload');
+
+// ============================================================
+// المسار الرئيسي
 // ============================================================
 app.get('/', (req, res) => {
     res.status(200).json({
@@ -78,7 +92,7 @@ app.get('/', (req, res) => {
 });
 
 // ============================================================
-// مسار الصحة (Health Check)
+// مسار الصحة
 // ============================================================
 app.get('/api/health', (req, res) => {
     res.status(200).json({
@@ -90,452 +104,106 @@ app.get('/api/health', (req, res) => {
 });
 
 // ============================================================
-// استيراد المسارات (Routes)
 // ============================================================
-const authRoutes = require('./routes/authRoutes');
-const orderRoutes = require('./routes/orderRoutes');
-const videoRoutes = require('./routes/videoRoutes');
-const modelRoutes = require('./routes/modelRoutes');
-
+// 1. مسارات المصادقة (AUTH)
 // ============================================================
-// استخدام المسارات
-// ============================================================
-app.use('/api/auth', authRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/videos', videoRoutes);
-app.use('/api/models', modelRoutes);
-
-// ============================================================
-// مسارات الطلبات المباشرة (بدون use)
 // ============================================================
 
-// ============================================================
-// 1. مسارات الطلبات (Orders)
-// ============================================================
-
-// جلب جميع الطلبات للمدير
-app.get('/api/orders/admin/all', async (req, res) => {
+// تسجيل مستخدم جديد
+app.post('/api/auth/register', async (req, res) => {
     try {
-        const Order = require('./models/Order');
-        const orders = await Order.find()
-            .populate('user', 'name email')
-            .sort({ createdAt: -1 });
-        res.status(200).json({
-            success: true,
-            count: orders.length,
-            data: orders
-        });
-    } catch (error) {
-        console.error('❌ خطأ في جلب جميع الطلبات:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
+        const bcrypt = require('bcryptjs');
+        const { name, email, password, role } = req.body;
 
-// جلب طلبات الخبير
-app.get('/api/orders/expert', async (req, res) => {
-    try {
-        const Order = require('./models/Order');
-        const orders = await Order.find({ assignedExpert: req.user.id })
-            .populate('user', 'name email')
-            .sort({ createdAt: -1 });
-        res.status(200).json({
-            success: true,
-            count: orders.length,
-            data: orders
-        });
-    } catch (error) {
-        console.error('❌ خطأ في جلب طلبات الخبير:', error);
-        if (error.name === 'CastError' || (error.message && error.message.includes('CastError'))) {
-            return res.status(200).json({
-                success: true,
-                count: 0,
-                data: []
+        // التحقق من وجود المستخدم
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: 'البريد الإلكتروني مسجل بالفعل'
             });
         }
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
 
-// جلب جميع الطلبات للمستخدم العادي
-app.get('/api/orders', async (req, res) => {
-    try {
-        const Order = require('./models/Order');
-        const orders = await Order.find({ user: req.user.id })
-            .sort({ createdAt: -1 });
-        res.status(200).json({
-            success: true,
-            count: orders.length,
-            data: orders
-        });
-    } catch (error) {
-        console.error('❌ خطأ في جلب طلبات المستخدم:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
+        // تشفير كلمة المرور
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
-// إنشاء طلب جديد
-app.post('/api/orders', async (req, res) => {
-    try {
-        const Order = require('./models/Order');
-        req.body.user = req.user.id;
-        const order = await Order.create(req.body);
+        const user = new User({
+            name,
+            email,
+            password: hashedPassword,
+            role: role || 'user',
+            isActive: true
+        });
+
+        await user.save();
+
         res.status(201).json({
             success: true,
-            message: 'تم إنشاء الطلب بنجاح ✅',
-            data: order
+            message: 'تم إنشاء الحساب بنجاح',
+            data: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
         });
     } catch (error) {
-        console.error('❌ خطأ في إنشاء الطلب:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+        console.error('❌ خطأ في التسجيل:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
-// جلب طلب محدد
-app.get('/api/orders/:id', async (req, res) => {
+// تسجيل الدخول
+app.post('/api/auth/login', async (req, res) => {
     try {
-        const Order = require('./models/Order');
-        const order = await Order.findById(req.params.id)
-            .populate('user', 'name email')
-            .populate('assignedExpert', 'name email');
+        const bcrypt = require('bcryptjs');
+        const jwt = require('jsonwebtoken');
+        const { email, password } = req.body;
 
-        if (!order) {
-            return res.status(404).json({
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(401).json({
                 success: false,
-                message: 'الطلب غير موجود ❌'
+                message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
             });
         }
 
-        const isAuthorized = 
-            req.user.role === 'admin' || 
-            req.user.id === order.user._id.toString() || 
-            (req.user.role === 'expert' && req.user.id === order.assignedExpert?._id.toString());
-
-        if (!isAuthorized) {
-            return res.status(403).json({
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({
                 success: false,
-                message: 'ليس لديك صلاحية لعرض هذا الطلب'
+                message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
             });
         }
 
-        res.status(200).json({
-            success: true,
-            data: order
-        });
-    } catch (error) {
-        console.error('❌ خطأ في جلب الطلب:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
-
-// تحديث طلب
-app.put('/api/orders/:id', async (req, res) => {
-    try {
-        const Order = require('./models/Order');
-        let order = await Order.findById(req.params.id);
-
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: 'الطلب غير موجود ❌'
-            });
-        }
-
-        const isAuthorized = 
-            req.user.role === 'admin' || 
-            req.user.id === order.user.toString();
-
-        if (!isAuthorized) {
-            return res.status(403).json({
-                success: false,
-                message: 'ليس لديك صلاحية لتعديل هذا الطلب'
-            });
-        }
-
-        if (req.user.role !== 'admin') {
-            delete req.body.assignedExpert;
-            delete req.body.budget;
-        }
-
-        order = await Order.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET || 'my_super_secret_key_123456',
+            { expiresIn: '30d' }
         );
 
         res.status(200).json({
             success: true,
-            message: 'تم تحديث الطلب بنجاح ✅',
-            data: order
-        });
-    } catch (error) {
-        console.error('❌ خطأ في تحديث الطلب:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
-
-// حذف طلب
-app.delete('/api/orders/:id', async (req, res) => {
-    try {
-        const Order = require('./models/Order');
-        const order = await Order.findById(req.params.id);
-
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: 'الطلب غير موجود ❌'
-            });
-        }
-
-        const isAuthorized = 
-            req.user.role === 'admin' || 
-            req.user.id === order.user.toString();
-
-        if (!isAuthorized) {
-            return res.status(403).json({
-                success: false,
-                message: 'ليس لديك صلاحية لحذف هذا الطلب'
-            });
-        }
-
-        await order.deleteOne();
-
-        res.status(200).json({
-            success: true,
-            message: 'تم حذف الطلب بنجاح 🗑️'
-        });
-    } catch (error) {
-        console.error('❌ خطأ في حذف الطلب:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
-
-// رفع ملفات للطلب
-app.post('/api/orders/:id/upload', async (req, res) => {
-    try {
-        const Order = require('./models/Order');
-        const upload = require('./middleware/upload');
-        
-        upload.array('files', 5)(req, res, async (err) => {
-            if (err) {
-                return res.status(400).json({
-                    success: false,
-                    message: err.message
-                });
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                isActive: user.isActive
             }
-
-            if (!req.files || req.files.length === 0) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'يرجى رفع ملف واحد على الأقل'
-                });
-            }
-
-            const order = await Order.findById(req.params.id);
-            if (!order) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'الطلب غير موجود ❌'
-                });
-            }
-
-            const isAuthorized = 
-                req.user.role === 'admin' || 
-                req.user.id === order.user.toString();
-
-            if (!isAuthorized) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'ليس لديك صلاحية لرفع ملفات لهذا الطلب'
-                });
-            }
-
-            const fileData = req.files.map(file => ({
-                filename: file.originalname || file.filename,
-                path: `uploads/${file.filename}`,
-                size: file.size,
-                uploadDate: new Date()
-            }));
-
-            order.files.push(...fileData);
-            await order.save();
-
-            res.status(200).json({
-                success: true,
-                message: `تم رفع ${req.files.length} ملف بنجاح ✅`,
-                data: order
-            });
         });
     } catch (error) {
-        console.error('❌ خطأ في رفع الملفات:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+        console.error('❌ خطأ في تسجيل الدخول:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
-// جلب ملفات الطلب
-app.get('/api/orders/:id/files', async (req, res) => {
+// جلب بيانات المستخدم الحالي
+app.get('/api/auth/me', async (req, res) => {
     try {
-        const Order = require('./models/Order');
-        const order = await Order.findById(req.params.id);
-        
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: 'الطلب غير موجود'
-            });
-        }
-
-        const isAuthorized = 
-            req.user.role === 'admin' || 
-            req.user.id === order.user.toString() ||
-            (req.user.role === 'expert' && req.user.id === order.assignedExpert?.toString());
-
-        if (!isAuthorized) {
-            return res.status(403).json({
-                success: false,
-                message: 'ليس لديك صلاحية لعرض هذه الملفات'
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            files: order.files || []
-        });
-    } catch (error) {
-        console.error('❌ خطأ في جلب الملفات:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
-
-// تحميل ملف معين
-app.get('/api/orders/:orderId/files/:fileIndex', async (req, res) => {
-    try {
-        const Order = require('./models/Order');
-        const order = await Order.findById(req.params.orderId);
-        
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: 'الطلب غير موجود'
-            });
-        }
-
-        const isAuthorized = 
-            req.user.role === 'admin' || 
-            req.user.id === order.user.toString() ||
-            (req.user.role === 'expert' && req.user.id === order.assignedExpert?.toString());
-
-        if (!isAuthorized) {
-            return res.status(403).json({
-                success: false,
-                message: 'ليس لديك صلاحية لتحميل هذا الملف'
-            });
-        }
-
-        const fileIndex = parseInt(req.params.fileIndex);
-        if (isNaN(fileIndex) || fileIndex < 0 || fileIndex >= order.files.length) {
-            return res.status(404).json({
-                success: false,
-                message: 'الملف غير موجود'
-            });
-        }
-
-        const file = order.files[fileIndex];
-        const filePath = path.join(__dirname, file.path);
-        
-        if (!fs.existsSync(filePath)) {
-            return res.status(404).json({
-                success: false,
-                message: 'الملف غير موجود على الخادم'
-            });
-        }
-
-        res.download(filePath, file.filename);
-    } catch (error) {
-        console.error('❌ خطأ في تحميل الملف:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
-
-// ============================================================
-// 2. مسارات المستخدمين (Users)
-// ============================================================
-
-// جلب جميع الخبراء
-app.get('/api/users/experts', async (req, res) => {
-    try {
-        const User = require('./models/User');
-        const experts = await User.find({ role: 'expert' })
-            .select('-password')
-            .sort({ name: 1 });
-        res.status(200).json({
-            success: true,
-            data: experts
-        });
-    } catch (error) {
-        console.error('❌ خطأ في جلب الخبراء:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
-
-// جلب جميع المستخدمين
-app.get('/api/users', async (req, res) => {
-    try {
-        const User = require('./models/User');
-        const users = await User.find()
-            .select('-password')
-            .sort({ createdAt: -1 });
-        res.status(200).json({
-            success: true,
-            count: users.length,
-            data: users
-        });
-    } catch (error) {
-        console.error('❌ خطأ في جلب المستخدمين:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
-
-// جلب مستخدم محدد
-app.get('/api/users/:id', async (req, res) => {
-    try {
-        const User = require('./models/User');
-        const user = await User.findById(req.params.id).select('-password');
+        const user = await User.findById(req.user?.id).select('-password');
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -547,82 +215,67 @@ app.get('/api/users/:id', async (req, res) => {
             data: user
         });
     } catch (error) {
-        console.error('❌ خطأ في جلب المستخدم:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
-
-// تحديث مستخدم
-app.put('/api/users/:id', async (req, res) => {
-    try {
-        const User = require('./models/User');
-        const { isActive, expertise, bio, role } = req.body;
-        const updateData = {};
-        if (isActive !== undefined) updateData.isActive = isActive;
-        if (expertise !== undefined) updateData.expertise = expertise;
-        if (bio !== undefined) updateData.bio = bio;
-        if (role !== undefined && req.user.role === 'admin') updateData.role = role;
-        
-        const user = await User.findByIdAndUpdate(
-            req.params.id,
-            updateData,
-            { new: true, runValidators: true }
-        ).select('-password');
-        
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: 'المستخدم غير موجود'
-            });
-        }
-        res.status(200).json({
-            success: true,
-            data: user
-        });
-    } catch (error) {
-        console.error('❌ خطأ في تحديث المستخدم:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
-
-// حذف مستخدم
-app.delete('/api/users/:id', async (req, res) => {
-    try {
-        const User = require('./models/User');
-        const user = await User.findByIdAndDelete(req.params.id);
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: 'المستخدم غير موجود'
-            });
-        }
-        res.status(200).json({
-            success: true,
-            message: 'تم حذف المستخدم بنجاح'
-        });
-    } catch (error) {
-        console.error('❌ خطأ في حذف المستخدم:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+        console.error('❌ خطأ في جلب بيانات المستخدم:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
 // ============================================================
-// 3. مسارات الفيديوهات الإضافية
 // ============================================================
+// 2. مسارات الفيديوهات (VIDEOS)
+// ============================================================
+// ============================================================
+
+// رفع فيديو جديد
+app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'يرجى اختيار فيديو'
+            });
+        }
+
+        const { title, subjectId, subjectName, specialtyName, universityName, description } = req.body;
+
+        if (!title || !subjectId || !subjectName) {
+            return res.status(400).json({
+                success: false,
+                message: 'العنوان، معرف المادة، واسم المادة مطلوبون'
+            });
+        }
+
+        const video = new Video({
+            title,
+            subjectId: parseInt(subjectId),
+            subjectName,
+            specialtyName: specialtyName || '',
+            universityName: universityName || '',
+            description: description || '',
+            fileName: req.file.filename,
+            filePath: req.file.path,
+            fileSize: (req.file.size / (1024 * 1024)).toFixed(2) + ' MB',
+            fileType: req.file.mimetype,
+            uploadDate: new Date(),
+            views: 0
+        });
+
+        await video.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'تم رفع الفيديو بنجاح',
+            data: video
+        });
+    } catch (error) {
+        console.error('❌ خطأ في رفع الفيديو:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
 
 // جلب جميع الفيديوهات
 app.get('/api/videos/all', async (req, res) => {
     try {
-        const Video = require('./models/Video');
         const videos = await Video.find().sort({ uploadDate: -1 });
         res.status(200).json({
             success: true,
@@ -631,18 +284,14 @@ app.get('/api/videos/all', async (req, res) => {
         });
     } catch (error) {
         console.error('❌ خطأ في جلب الفيديوهات:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
 // جلب فيديوهات مادة معينة
 app.get('/api/videos/subject/:subjectId', async (req, res) => {
     try {
-        const Video = require('./models/Video');
-        const videos = await Video.find({ subjectId: req.params.subjectId });
+        const videos = await Video.find({ subjectId: parseInt(req.params.subjectId) });
         res.status(200).json({
             success: true,
             count: videos.length,
@@ -650,17 +299,13 @@ app.get('/api/videos/subject/:subjectId', async (req, res) => {
         });
     } catch (error) {
         console.error('❌ خطأ في جلب فيديوهات المادة:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
 // جلب فيديو محدد
 app.get('/api/videos/:id', async (req, res) => {
     try {
-        const Video = require('./models/Video');
         const video = await Video.findById(req.params.id);
         if (!video) {
             return res.status(404).json({
@@ -674,17 +319,13 @@ app.get('/api/videos/:id', async (req, res) => {
         });
     } catch (error) {
         console.error('❌ خطأ في جلب الفيديو:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
-// تحديث عدد مشاهدات الفيديو
+// تحديث عدد المشاهدات
 app.put('/api/videos/:id/views', async (req, res) => {
     try {
-        const Video = require('./models/Video');
         const video = await Video.findByIdAndUpdate(
             req.params.id,
             { $inc: { views: 1 } },
@@ -702,15 +343,474 @@ app.put('/api/videos/:id/views', async (req, res) => {
         });
     } catch (error) {
         console.error('❌ خطأ في تحديث المشاهدات:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// حذف فيديو
+app.delete('/api/videos/:id', async (req, res) => {
+    try {
+        const video = await Video.findById(req.params.id);
+        if (!video) {
+            return res.status(404).json({
+                success: false,
+                message: 'الفيديو غير موجود'
+            });
+        }
+
+        if (video.filePath && fs.existsSync(video.filePath)) {
+            fs.unlinkSync(video.filePath);
+        }
+
+        await video.deleteOne();
+        res.status(200).json({
+            success: true,
+            message: 'تم حذف الفيديو بنجاح'
         });
+    } catch (error) {
+        console.error('❌ خطأ في حذف الفيديو:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
 // ============================================================
-// 4. معالجة 404 - يجب أن يكون في النهاية
+// ============================================================
+// 3. مسارات النماذج (MODELS)
+// ============================================================
+// ============================================================
+
+// جلب جميع النماذج
+app.get('/api/models', async (req, res) => {
+    try {
+        const models = await Model.find()
+            .populate('uploadedBy', 'name email')
+            .sort({ createdAt: -1 });
+        res.status(200).json({
+            success: true,
+            count: models.length,
+            data: models
+        });
+    } catch (error) {
+        console.error('❌ خطأ في جلب النماذج:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// جلب نموذج محدد
+app.get('/api/models/:id', async (req, res) => {
+    try {
+        const model = await Model.findById(req.params.id);
+        if (!model) {
+            return res.status(404).json({
+                success: false,
+                message: 'النموذج غير موجود'
+            });
+        }
+        res.status(200).json({
+            success: true,
+            data: model
+        });
+    } catch (error) {
+        console.error('❌ خطأ في جلب النموذج:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// رفع نموذج جديد
+app.post('/api/models', async (req, res) => {
+    try {
+        const { title, category, description, fileName, fileSize, fileType, fileData, mainService, subService } = req.body;
+
+        if (!title || !category || !fileName || !fileData || !mainService) {
+            return res.status(400).json({
+                success: false,
+                message: 'يرجى إدخال جميع البيانات المطلوبة (بما في ذلك الخدمة الرئيسية)'
+            });
+        }
+
+        const model = new Model({
+            title,
+            category,
+            description: description || '',
+            fileName,
+            fileSize: fileSize || '0 KB',
+            fileType: fileType || 'application/octet-stream',
+            fileData,
+            mainService,
+            subService: subService || 'خدمة فرعية'
+        });
+
+        await model.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'تم رفع النموذج بنجاح',
+            data: model
+        });
+    } catch (error) {
+        console.error('❌ خطأ في رفع النموذج:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// حذف نموذج
+app.delete('/api/models/:id', async (req, res) => {
+    try {
+        const model = await Model.findById(req.params.id);
+        if (!model) {
+            return res.status(404).json({
+                success: false,
+                message: 'النموذج غير موجود'
+            });
+        }
+        await model.deleteOne();
+        res.status(200).json({
+            success: true,
+            message: 'تم حذف النموذج بنجاح'
+        });
+    } catch (error) {
+        console.error('❌ خطأ في حذف النموذج:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// ============================================================
+// ============================================================
+// 4. مسارات الطلبات (ORDERS)
+// ============================================================
+// ============================================================
+
+// جلب جميع الطلبات (للمدير)
+app.get('/api/orders/admin/all', async (req, res) => {
+    try {
+        const orders = await Order.find()
+            .populate('user', 'name email')
+            .sort({ createdAt: -1 });
+        res.status(200).json({
+            success: true,
+            count: orders.length,
+            data: orders
+        });
+    } catch (error) {
+        console.error('❌ خطأ في جلب جميع الطلبات:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// جلب طلبات المستخدم
+app.get('/api/orders', async (req, res) => {
+    try {
+        const orders = await Order.find({ user: req.user?.id })
+            .sort({ createdAt: -1 });
+        res.status(200).json({
+            success: true,
+            count: orders.length,
+            data: orders
+        });
+    } catch (error) {
+        console.error('❌ خطأ في جلب طلبات المستخدم:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// إنشاء طلب جديد
+app.post('/api/orders', async (req, res) => {
+    try {
+        req.body.user = req.user?.id;
+        const order = await Order.create(req.body);
+        res.status(201).json({
+            success: true,
+            message: 'تم إنشاء الطلب بنجاح ✅',
+            data: order
+        });
+    } catch (error) {
+        console.error('❌ خطأ في إنشاء الطلب:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// جلب طلب محدد
+app.get('/api/orders/:id', async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id)
+            .populate('user', 'name email')
+            .populate('assignedExpert', 'name email');
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'الطلب غير موجود ❌'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: order
+        });
+    } catch (error) {
+        console.error('❌ خطأ في جلب الطلب:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// تحديث طلب
+app.put('/api/orders/:id', async (req, res) => {
+    try {
+        const order = await Order.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'الطلب غير موجود ❌'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'تم تحديث الطلب بنجاح ✅',
+            data: order
+        });
+    } catch (error) {
+        console.error('❌ خطأ في تحديث الطلب:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// حذف طلب
+app.delete('/api/orders/:id', async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'الطلب غير موجود ❌'
+            });
+        }
+
+        await order.deleteOne();
+        res.status(200).json({
+            success: true,
+            message: 'تم حذف الطلب بنجاح 🗑️'
+        });
+    } catch (error) {
+        console.error('❌ خطأ في حذف الطلب:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// رفع ملفات للطلب
+app.post('/api/orders/:id/upload', upload.array('files', 5), async (req, res) => {
+    try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'يرجى رفع ملف واحد على الأقل'
+            });
+        }
+
+        const order = await Order.findById(req.params.id);
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'الطلب غير موجود ❌'
+            });
+        }
+
+        const fileData = req.files.map(file => ({
+            filename: file.originalname || file.filename,
+            path: `uploads/${file.filename}`,
+            size: file.size,
+            uploadDate: new Date()
+        }));
+
+        order.files.push(...fileData);
+        await order.save();
+
+        res.status(200).json({
+            success: true,
+            message: `تم رفع ${req.files.length} ملف بنجاح ✅`,
+            data: order
+        });
+    } catch (error) {
+        console.error('❌ خطأ في رفع الملفات:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// جلب ملفات الطلب
+app.get('/api/orders/:id/files', async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'الطلب غير موجود'
+            });
+        }
+        res.status(200).json({
+            success: true,
+            files: order.files || []
+        });
+    } catch (error) {
+        console.error('❌ خطأ في جلب الملفات:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// تحميل ملف معين
+app.get('/api/orders/:orderId/files/:fileIndex', async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.orderId);
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'الطلب غير موجود'
+            });
+        }
+
+        const fileIndex = parseInt(req.params.fileIndex);
+        if (isNaN(fileIndex) || fileIndex < 0 || fileIndex >= order.files.length) {
+            return res.status(404).json({
+                success: false,
+                message: 'الملف غير موجود'
+            });
+        }
+
+        const file = order.files[fileIndex];
+        const filePath = path.join(__dirname, file.path);
+
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({
+                success: false,
+                message: 'الملف غير موجود على الخادم'
+            });
+        }
+
+        res.download(filePath, file.filename);
+    } catch (error) {
+        console.error('❌ خطأ في تحميل الملف:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// ============================================================
+// ============================================================
+// 5. مسارات المستخدمين (USERS)
+// ============================================================
+// ============================================================
+
+// جلب جميع المستخدمين
+app.get('/api/users', async (req, res) => {
+    try {
+        const users = await User.find()
+            .select('-password')
+            .sort({ createdAt: -1 });
+        res.status(200).json({
+            success: true,
+            count: users.length,
+            data: users
+        });
+    } catch (error) {
+        console.error('❌ خطأ في جلب المستخدمين:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// جلب جميع الخبراء
+app.get('/api/users/experts', async (req, res) => {
+    try {
+        const experts = await User.find({ role: 'expert' })
+            .select('-password')
+            .sort({ name: 1 });
+        res.status(200).json({
+            success: true,
+            data: experts
+        });
+    } catch (error) {
+        console.error('❌ خطأ في جلب الخبراء:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// جلب مستخدم محدد
+app.get('/api/users/:id', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password');
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'المستخدم غير موجود'
+            });
+        }
+        res.status(200).json({
+            success: true,
+            data: user
+        });
+    } catch (error) {
+        console.error('❌ خطأ في جلب المستخدم:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// تحديث مستخدم
+app.put('/api/users/:id', async (req, res) => {
+    try {
+        const { isActive, expertise, bio, role } = req.body;
+        const updateData = {};
+        if (isActive !== undefined) updateData.isActive = isActive;
+        if (expertise !== undefined) updateData.expertise = expertise;
+        if (bio !== undefined) updateData.bio = bio;
+        if (role !== undefined) updateData.role = role;
+
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            updateData,
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'المستخدم غير موجود'
+            });
+        }
+        res.status(200).json({
+            success: true,
+            data: user
+        });
+    } catch (error) {
+        console.error('❌ خطأ في تحديث المستخدم:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// حذف مستخدم
+app.delete('/api/users/:id', async (req, res) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'المستخدم غير موجود'
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: 'تم حذف المستخدم بنجاح'
+        });
+    } catch (error) {
+        console.error('❌ خطأ في حذف المستخدم:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// ============================================================
+// 6. معالجة 404
 // ============================================================
 app.use((req, res) => {
     res.status(404).json({
@@ -721,7 +821,7 @@ app.use((req, res) => {
 });
 
 // ============================================================
-// 5. معالجة الأخطاء العامة
+// 7. معالجة الأخطاء العامة
 // ============================================================
 app.use((err, req, res, next) => {
     console.error('❌ خطأ:', err.stack);
