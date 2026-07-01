@@ -1,4 +1,4 @@
-// backend/create-admin.js
+// backend/fix-password.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const dotenv = require('dotenv');
@@ -21,28 +21,25 @@ const UserSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', UserSchema);
 
-async function createAdmin() {
+async function fixPassword() {
     try {
-        // حذف المستخدم القديم إذا كان موجوداً
-        await User.deleteOne({ email: 'admin@drasah.com' });
-        console.log('🗑️ تم حذف المستخدم القديم (إن وجد)');
+        // البحث عن المستخدم
+        const user = await User.findOne({ email: 'admin@drasah.com' });
+        
+        if (!user) {
+            console.log('❌ المستخدم غير موجود');
+            process.exit(0);
+        }
 
-        // تشفير كلمة المرور
+        // تشفير كلمة المرور الجديدة
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash('Admin@123456', salt);
 
-        // إنشاء مستخدم جديد
-        const admin = new User({
-            name: 'مدير النظام',
-            email: 'admin@drasah.com',
-            password: hashedPassword,
-            role: 'admin',
-            isActive: true
-        });
+        // تحديث كلمة المرور
+        user.password = hashedPassword;
+        await user.save();
 
-        await admin.save();
-
-        console.log('✅ تم إنشاء المدير بنجاح!');
+        console.log('✅ تم تحديث كلمة المرور بنجاح!');
         console.log('📧 البريد: admin@drasah.com');
         console.log('🔑 كلمة المرور: Admin@123456');
         process.exit(0);
@@ -52,4 +49,4 @@ async function createAdmin() {
     }
 }
 
-createAdmin();
+fixPassword();
