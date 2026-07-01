@@ -89,6 +89,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/videos', require('./routes/videoRoutes'));
+app.use('/api/models', require('./routes/modelRoutes'));
 
 // ============================================================
 // مسار 404
