@@ -112,41 +112,4 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// ============================================================
-// جلب بيانات المستخدم الحالي
-// ============================================================
-router.get('/me', async (req, res) => {
-    try {
-        const token = req.header('Authorization')?.replace('Bearer ', '');
-        
-        if (!token) {
-            return res.status(401).json({
-                success: false,
-                message: 'يرجى تسجيل الدخول أولاً'
-            });
-        }
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'my_super_secret_key_123456');
-        const user = await User.findById(decoded.id).select('-password');
-        
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: 'المستخدم غير موجود'
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            data: user
-        });
-    } catch (error) {
-        console.error('❌ خطأ في جلب بيانات المستخدم:', error);
-        res.status(401).json({
-            success: false,
-            message: 'يرجى تسجيل الدخول أولاً'
-        });
-    }
-});
-
 module.exports = router;
