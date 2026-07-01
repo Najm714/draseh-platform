@@ -1,4 +1,4 @@
-// backend/fix-user.js
+// backend/fix-all-users.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const dotenv = require('dotenv');
@@ -21,24 +21,28 @@ const UserSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', UserSchema);
 
-async function fixUser() {
+async function fixAllUsers() {
     try {
         // جلب جميع المستخدمين
         const users = await User.find({});
         console.log(`📦 تم العثور على ${users.length} مستخدم`);
 
+        let fixedCount = 0;
+
         for (const user of users) {
             // إذا كانت كلمة المرور غير موجودة أو undefined
-            if (!user.password || user.password === 'undefined') {
+            if (!user.password || user.password === 'undefined' || user.password === '') {
                 const salt = await bcrypt.genSalt(10);
                 const hashedPassword = await bcrypt.hash('Admin@123456', salt);
                 user.password = hashedPassword;
                 await user.save();
+                fixedCount++;
                 console.log(`✅ تم تحديث كلمة مرور المستخدم: ${user.email}`);
             }
         }
 
-        console.log('🎉 تم الانتهاء من تحديث جميع المستخدمين');
+        console.log(`🎉 تم تحديث ${fixedCount} مستخدم بنجاح`);
+        console.log('📧 جميع المستخدمين يمكنهم استخدام: Admin@123456');
         process.exit(0);
     } catch (error) {
         console.error('❌ خطأ:', error);
@@ -46,4 +50,4 @@ async function fixUser() {
     }
 }
 
-fixUser();
+fixAllUsers();

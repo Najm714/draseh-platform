@@ -47,7 +47,7 @@ app.use('/uploads/videos', express.static(path.join(__dirname, 'uploads', 'video
 // ============================================================
 // الاتصال بقاعدة البيانات
 // ============================================================
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://alqadynjm088_db_user:miaiLDGxIe5Wk0WH@cluster0.ctsx5vv.mongodb.net/draseh_platform?retryWrites=true&w=majority&appName=Cluster0';
+const MONGO_URI = process.env.MONGO_URI || 'MONGO_URI=mongodb+srv://alqadynjm088_db_user:miaiLDGxIe5Wk0WH@cluster0.ctsx5vv.mongodb.net/draseh_platform?retryWrites=true&w=majority&appName=Cluster0';
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ تم الاتصال بقاعدة البيانات بنجاح'))
