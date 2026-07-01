@@ -1,15 +1,15 @@
+// backend/models/Model.js
 const mongoose = require('mongoose');
 
-const modelSchema = new mongoose.Schema({
+const ModelSchema = new mongoose.Schema({
     title: {
         type: String,
-        required: [true, 'عنوان النموذج مطلوب'],
-        trim: true
+        required: true
     },
     category: {
         type: String,
-        enum: ['proposal', 'thesis', 'survey', 'statistics', 'publication', 'other'],
-        required: true
+        required: true,
+        enum: ['proposal', 'thesis', 'survey', 'statistics', 'publication', 'other']
     },
     description: {
         type: String,
@@ -21,22 +21,31 @@ const modelSchema = new mongoose.Schema({
     },
     fileSize: {
         type: String,
-        required: true
+        default: '0 KB'
     },
     fileType: {
         type: String,
-        required: true
+        default: 'application/octet-stream'
     },
     fileData: {
-        type: String, // تخزين الملف كـ Base64
+        type: String,
         required: true
+    },
+    // ✅ أضف هذه الحقول الجديدة
+    mainService: {
+        type: String,
+        required: true,
+        enum: ['statistics', 'proposal', 'literature', 'publication', 'design', 'video', 'consulting', 'tutoring', 'other']
+    },
+    subService: {
+        type: String,
+        default: 'خدمة فرعية'
     },
     uploadedBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+        ref: 'User'
     },
-    uploadDate: {
+    createdAt: {
         type: Date,
         default: Date.now
     }
@@ -44,4 +53,4 @@ const modelSchema = new mongoose.Schema({
     timestamps: true
 });
 
-module.exports = mongoose.model('Model', modelSchema);
+module.exports = mongoose.model('Model', ModelSchema);

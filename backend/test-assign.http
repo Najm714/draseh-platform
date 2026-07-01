@@ -21,6 +21,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNDE3MTdkM
 Content-Type: application/json
 
 {
-    "assignedExpert": "EXPERT_ID_HERE",
+    "assignedExpert": "6a42c11eedea2fcfd6df58d4",
     "status": "in-progress"
 }
