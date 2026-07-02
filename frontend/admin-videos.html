@@ -507,6 +507,8 @@
             : 'https://draseh-platform-1.onrender.com';
 
         console.log('🌐 API_URL:', API_URL);
+        console.log('🔑 التوكن:', localStorage.getItem('token'));
+
 
         // ============================================================
         // المتغيرات العامة
@@ -940,85 +942,122 @@
             uploadArea.querySelector('h4').textContent = `📄 ${file.name}`;
             uploadArea.querySelector('p').textContent = `حجم الملف: ${(file.size / (1024 * 1024)).toFixed(2)} MB`;
         }
+// ============================================================
+// رفع فيديو جديد - النسخة النهائية
+// ============================================================
+document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-        // ============================================================
-        // رفع فيديو جديد
-        // ============================================================
-        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+    // ✅ الحصول على العناصر
+    const titleInput = document.getElementById('videoTitle');
+    const universitySelect = document.getElementById('universitySelect');
+    const specialtySelect = document.getElementById('specialtySelect');
+    const subjectSelect = document.getElementById('subjectSelect');
+    const descInput = document.getElementById('videoDescription');
+    const fileInput = document.getElementById('videoInput');
 
-            const title = document.getElementById('videoTitle').value.trim();
-            const university = document.getElementById('universitySelect').value;
-            const specialty = document.getElementById('specialtySelect').value;
-            const subjectId = document.getElementById('subjectSelect').value;
-            const subjectName = document.getElementById('subjectSelect').options[document.getElementById('subjectSelect').selectedIndex]?.text || '';
-            const description = document.getElementById('videoDescription').value.trim();
-            const file = fileInput.files[0];
+    // ✅ التحقق من وجود العناصر
+    if (!titleInput || !universitySelect || !specialtySelect || !subjectSelect || !fileInput) {
+        alert('❌ حدث خطأ في النموذج، يرجى تحديث الصفحة.');
+        return;
+    }
 
-            // ✅ التحقق من الحقول
-            if (!title || !university || !specialty || !subjectId || !file) {
-                alert('❌ يرجى ملء جميع الحقول المطلوبة واختيار فيديو');
-                return;
-            }
+    const title = titleInput.value.trim();
+    const university = universitySelect.value;
+    const specialty = specialtySelect.value;
+    const subjectId = subjectSelect.value;
+    const subjectName = subjectSelect.options[subjectSelect.selectedIndex]?.text || '';
+    const description = descInput ? descInput.value.trim() : '';
+    const file = fileInput.files[0];
 
-            // ✅ التحقق من توكن المستخدم
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('❌ يرجى تسجيل الدخول أولاً');
-                window.location.href = 'login.html';
-                return;
-            }
+    // ✅ التحقق من الحقول
+    if (!title || !university || !specialty || !subjectId || !file) {
+        alert('❌ يرجى ملء جميع الحقول المطلوبة واختيار فيديو');
+        return;
+    }
 
-            const btn = document.getElementById('submitBtn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الرفع...';
-            btn.disabled = true;
+    // ✅ التحقق من توكن المستخدم
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('❌ يرجى تسجيل الدخول أولاً');
+        window.location.href = 'login.html';
+        return;
+    }
 
-            // ✅ إنشاء FormData
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('subjectId', subjectId);
-            formData.append('subjectName', subjectName);
-            formData.append('specialtyName', document.getElementById('specialtySelect').options[document.getElementById('specialtySelect').selectedIndex]?.text || '');
-            formData.append('universityName', document.getElementById('universitySelect').options[document.getElementById('universitySelect').selectedIndex]?.text || '');
-            formData.append('description', description);
-            formData.append('video', file);
+    console.log('🔑 التوكن:', token);
+    console.log('📡 API_URL:', API_URL);
 
-            try {
-                console.log('📡 رفع فيديو إلى:', `${API_URL}/api/videos/upload`);
+    const btn = document.getElementById('submitBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الرفع...';
+    btn.disabled = true;
 
-                const response = await fetch(`${API_URL}/api/videos/upload`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: formData
-                });
+    // ✅ إنشاء FormData
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('subjectId', subjectId);
+    formData.append('subjectName', subjectName);
+    formData.append('specialtyName', specialtySelect.options[specialtySelect.selectedIndex]?.text || '');
+    formData.append('universityName', universitySelect.options[universitySelect.selectedIndex]?.text || '');
+    formData.append('description', description);
+    formData.append('video', file);
 
-                const data = await response.json();
-                console.log('📦 الرد:', data);
+    try {
+        // ✅ إضافة مهلة للطلب (timeout)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 دقائق مهلة
 
-                if (data.success) {
-                    alert('✅ تم رفع الفيديو بنجاح!');
-                    this.reset();
-                    fileInfo.classList.remove('show');
-                    document.getElementById('specialtySelect').disabled = true;
-                    document.getElementById('subjectSelect').disabled = true;
-                    uploadArea.querySelector('h4').textContent = 'اسحب ملف الفيديو هنا أو انقر للاختيار';
-                    uploadArea.querySelector('p').textContent = 'يدعم الصيغ: MP4, WebM, OGG, AVI, MKV (حد أقصى 500 ميجابايت)';
-                    loadVideos();
-                } else {
-                    alert('❌ خطأ: ' + (data.message || 'فشل رفع الفيديو'));
-                }
-            } catch (error) {
-                console.error('❌ خطأ في رفع الفيديو:', error);
-                alert('❌ حدث خطأ في الاتصال بالخادم. تأكد من أن الخادم يعمل.');
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
+        console.log('📡 رفع فيديو إلى:', `${API_URL}/api/videos/upload`);
+
+        const response = await fetch(`${API_URL}/api/videos/upload`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData,
+            signal: controller.signal
         });
 
+        clearTimeout(timeoutId);
+
+        // ✅ التحقق من حالة الاستجابة
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `خطأ في الخادم: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('📦 الرد:', data);
+
+        if (data.success) {
+            alert('✅ تم رفع الفيديو بنجاح!');
+            this.reset();
+            document.getElementById('fileInfo').classList.remove('show');
+            document.getElementById('specialtySelect').disabled = true;
+            document.getElementById('subjectSelect').disabled = true;
+            document.getElementById('uploadArea').querySelector('h4').textContent = 'اسحب ملف الفيديو هنا أو انقر للاختيار';
+            document.getElementById('uploadArea').querySelector('p').textContent = 'يدعم الصيغ: MP4, WebM, OGG, AVI, MKV (حد أقصى 500 ميجابايت)';
+            loadVideos();
+        } else {
+            alert('❌ خطأ: ' + (data.message || 'فشل رفع الفيديو'));
+        }
+    } catch (error) {
+        console.error('❌ خطأ في رفع الفيديو:', error);
+        if (error.name === 'AbortError') {
+            alert('❌ انتهت مهلة الرفع. الملف كبير جداً أو اتصال الإنترنت بطيء.');
+        } else if (error.message.includes('401')) {
+            alert('❌ انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        } else {
+            alert('❌ حدث خطأ في الاتصال بالخادم: ' + error.message);
+        }
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+});
         // ============================================================
         // جلب الفيديوهات
         // ============================================================

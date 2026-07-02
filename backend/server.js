@@ -250,7 +250,8 @@ app.get('/api/auth/me', protect, async (req, res) => {
 // ============================================================
 // 2. مسارات الفيديوهات (VIDEOS)
 // ============================================================
-// ✅ استخدم هذا المسار
+// رفع فيديو جديد
+// ============================================================
 app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => {
     try {
         console.log('📁 استلام فيديو:', req.file);
@@ -263,7 +264,6 @@ app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => 
             });
         }
 
-        // ✅ استخراج البيانات
         const { title, subjectId, subjectName, specialtyName, universityName, description } = req.body;
 
         if (!title || !subjectId || !subjectName) {
@@ -273,7 +273,7 @@ app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => 
             });
         }
 
-        // ✅ إنشاء الفيديو مع fileName من req.file
+        // ✅ إنشاء الفيديو
         const video = new Video({
             title: title,
             subjectId: parseInt(subjectId),
@@ -281,7 +281,7 @@ app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => 
             specialtyName: specialtyName || '',
             universityName: universityName || '',
             description: description || '',
-            fileName: req.file.filename,  // ✅ هذا هو المطلوب
+            fileName: req.file.filename,
             filePath: req.file.path,
             fileSize: (req.file.size / (1024 * 1024)).toFixed(2) + ' MB',
             fileType: req.file.mimetype,
