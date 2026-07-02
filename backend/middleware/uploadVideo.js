@@ -1,59 +1,37 @@
+// backend/middleware/uploadVideo.js
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// ============================================================
-// المسار المطلق لمجلد الفيديوهات
-// ============================================================
-const videoDir = path.join(__dirname, '..', 'uploads', 'videos');
-
-// ============================================================
 // التأكد من وجود مجلد الفيديوهات
-// ============================================================
-if (!fs.existsSync(videoDir)) {
-    fs.mkdirSync(videoDir, { recursive: true });
-    console.log('✅ تم إنشاء مجلد الفيديوهات في:', videoDir);
-} else {
-    console.log('✅ مجلد الفيديوهات موجود بالفعل في:', videoDir);
+const videosDir = path.join(__dirname, '../uploads/videos');
+if (!fs.existsSync(videosDir)) {
+    fs.mkdirSync(videosDir, { recursive: true });
 }
 
-// ============================================================
-// إعداد تخزين الفيديوهات
-// ============================================================
+// ✅ إعداد التخزين - هذا هو المكان الذي يتم فيه تعيين filename
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, videoDir);
+        cb(null, videosDir);
     },
     filename: function (req, file, cb) {
+        // ✅ هنا يتم إنشاء اسم الملف
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const ext = path.extname(file.originalname);
         cb(null, 'video-' + uniqueSuffix + ext);
     }
 });
 
-// ============================================================
-// فلترة أنواع الفيديوهات المسموحة
-// ============================================================
+// فلتر الملفات - قبول الفيديوهات فقط
 const fileFilter = (req, file, cb) => {
-    const allowedTypes = [
-        'video/mp4',
-        'video/webm',
-        'video/ogg',
-        'video/quicktime',
-        'video/x-msvideo',
-        'video/x-matroska'
-    ];
-
-    if (allowedTypes.includes(file.mimetype)) {
+    if (file.mimetype.startsWith('video/')) {
         cb(null, true);
     } else {
-        cb(new Error('نوع الملف غير مدعوم. يرجى رفع فيديو بصيغة MP4, WebM, OGG, AVI, أو MKV.'), false);
+        cb(new Error('يرجى رفع ملف فيديو صالح (mp4, webm, avi, etc)'), false);
     }
 };
 
-// ============================================================
-// إعداد Multer
-// ============================================================
+// إنشاء الميدل وير
 const upload = multer({
     storage: storage,
     limits: {

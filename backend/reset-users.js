@@ -1,12 +1,8 @@
 // backend/reset-users.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const dotenv = require('dotenv');
 
-dotenv.config();
-
-// رابط قاعدة البيانات
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/draseh_platform';
+const MONGO_URI = 'mongodb+srv://alqadynjm088_db_user:miaiLDGxIe5Wk0WH@cluster0.ctsx5vv.mongodb.net/draseh_platform?retryWrites=true&w=majority&appName=Cluster0';
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ تم الاتصال بقاعدة البيانات'))
@@ -24,13 +20,19 @@ const User = mongoose.model('User', UserSchema);
 
 async function resetUsers() {
     try {
-        // 1. حذف جميع المستخدمين
-        console.log('🗑️ جاري حذف جميع المستخدمين...');
-        const deleteResult = await User.deleteMany({});
-        console.log(`✅ تم حذف ${deleteResult.deletedCount} مستخدم`);
+        // عرض عدد المستخدمين قبل الحذف
+        const before = await User.countDocuments();
+        console.log('📊 عدد المستخدمين قبل الحذف:', before);
 
-        // 2. إنشاء المدير الجديد
-        console.log('👑 جاري إنشاء المدير الجديد...');
+        // حذف جميع المستخدمين
+        const result = await User.deleteMany({});
+        console.log('✅ تم حذف', result.deletedCount, 'مستخدم');
+
+        // عرض عدد المستخدمين بعد الحذف
+        const after = await User.countDocuments();
+        console.log('📊 عدد المستخدمين بعد الحذف:', after);
+
+        // إنشاء مدير جديد
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash('miaiLDGxIe5Wk0WH', salt);
 
@@ -43,10 +45,9 @@ async function resetUsers() {
         });
 
         await admin.save();
-        console.log('✅ تم إنشاء المدير الجديد بنجاح!');
+        console.log('✅ تم إنشاء المدير الجديد');
         console.log('📧 البريد: alqadynjm088@gmail.com');
         console.log('🔑 كلمة المرور: miaiLDGxIe5Wk0WH');
-        console.log('👤 الدور: admin');
 
         process.exit(0);
     } catch (error) {

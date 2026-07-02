@@ -28,9 +28,10 @@ const videoSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    // ✅ حقل fileName مطلوب
     fileName: {
         type: String,
-        required: true  // ✅ هذا مطلوب
+        required: true
     },
     filePath: {
         type: String,
@@ -40,22 +41,18 @@ const videoSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    duration: {
+    fileType: {
         type: String,
-        default: '00:00'
+        default: 'video/mp4'
     },
     uploadedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: false  // ✅ غير مطلوب
+        required: false
     },
     views: {
         type: Number,
         default: 0
-    },
-    isActive: {
-        type: Boolean,
-        default: true
     },
     uploadDate: {
         type: Date,
@@ -64,7 +61,5 @@ const videoSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
-
-videoSchema.index({ subjectId: 1, uploadDate: -1 });
 
 module.exports = mongoose.model('Video', videoSchema);
