@@ -2097,49 +2097,60 @@
             </div>
         </div>
     </header>
-
-    <!-- ============================================================
-    نافذة تسجيل الدخول
-    ============================================================ -->
-    <div class="auth-modal" id="authModal">
-        <div class="auth-modal-content">
-            <button class="close" onclick="closeAuth()">✕</button>
-            <h2 id="authTitle">تسجيل الدخول</h2>
-            <div class="error-msg" id="loginError"></div>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label>البريد الإلكتروني</label>
-                    <input type="email" id="loginEmail" placeholder="example@email.com" required />
-                </div>
-                <div class="form-group">
-                    <label>كلمة المرور</label>
-                    <input type="password" id="loginPassword" placeholder="••••••••" required />
-                </div>
-                <button type="submit" class="btn-primary" style="width:100%; padding:14px;">تسجيل الدخول</button>
-            </form>
-            <div style="text-align:center; margin:20px 0; color:var(--text-muted);">أو</div>
-            <div class="error-msg" id="registerError"></div>
-            <div class="success-msg" id="registerSuccess"></div>
-            <form id="registerForm">
-                <div class="form-group">
-                    <label>الاسم الكامل</label>
-                    <input type="text" id="registerName" placeholder="أحمد محمد" required />
-                </div>
-                <div class="form-group">
-                    <label>البريد الإلكتروني</label>
-                    <input type="email" id="registerEmail" placeholder="example@email.com" required />
-                </div>
-                <div class="form-group">
-                    <label>كلمة المرور</label>
-                    <input type="password" id="registerPassword" placeholder="6 أحرف على الأقل" required />
-                </div>
-                <button type="submit" class="btn-primary" style="width:100%; padding:14px; background:var(--gradient-secondary);">إنشاء حساب جديد</button>
-            </form>
-            <div style="text-align:center; margin-top:18px;">
-                <span class="toggle-link" onclick="toggleAuthForm()">تبديل بين تسجيل الدخول والتسجيل</span>
+    
+<!-- ============================================================
+نافذة تسجيل الدخول - نسخة معدلة
+============================================================ -->
+<div class="auth-modal" id="authModal">
+    <div class="auth-modal-content">
+        <button class="close" onclick="closeAuth()">✕</button>
+        <h2 id="authTitle">تسجيل الدخول</h2>
+        <div class="error-msg" id="loginError" style="display:none;"></div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>البريد الإلكتروني</label>
+                <input type="email" id="loginEmail" placeholder="admin@drasah.com" required />
             </div>
+            <div class="form-group">
+                <label>كلمة المرور</label>
+                <input type="password" id="loginPassword" placeholder="••••••••" required />
+            </div>
+            <button type="submit" class="btn-primary" style="width:100%; padding:14px;">
+                <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+            </button>
+        </form>
+        <div style="text-align:center; margin:20px 0; color:var(--text-muted);">أو</div>
+        <div class="error-msg" id="registerError" style="display:none;"></div>
+        <div class="success-msg" id="registerSuccess" style="display:none;"></div>
+        <form id="registerForm">
+            <div class="form-group">
+                <label>الاسم الكامل <span style="color:#EF4444;">*</span></label>
+                <input type="text" id="registerName" placeholder="أدخل اسمك الكامل" required />
+            </div>
+            <div class="form-group">
+                <label>البريد الإلكتروني <span style="color:#EF4444;">*</span></label>
+                <input type="email" id="registerEmail" placeholder="example@email.com" required />
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور <span style="color:#EF4444;">*</span></label>
+                <input type="password" id="registerPassword" placeholder="6 أحرف على الأقل" required minlength="6" />
+            </div>
+            
+            <!-- ✅ تم إزالة حقل "نوع الحساب" بالكامل -->
+            <!-- المستخدمون يسجلون كمستخدم عادي فقط -->
+            
+            <button type="submit" class="btn-primary" style="width:100%; padding:14px; background:var(--gradient-secondary);">
+                <i class="fas fa-user-plus"></i> إنشاء حساب جديد
+            </button>
+        </form>
+        <div style="text-align:center; margin-top:18px;">
+            <span class="toggle-link" onclick="toggleAuthForm()">تبديل بين تسجيل الدخول والتسجيل</span>
+        </div>
+        <div style="text-align:center; margin-top:10px; font-size:0.8rem; color:var(--text-muted);">
+            <i class="fas fa-info-circle"></i> يتم التسجيل كمستخدم عادي فقط
         </div>
     </div>
+</div>
 
     <!-- ============================================================
     القسم الرئيسي (Hero) - مع سلايدر صور
@@ -2951,77 +2962,85 @@
             }
         });
 
-        // ============================================================
-        // معالجة التسجيل
-        // ============================================================
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const name = document.getElementById('registerName').value.trim();
-            const email = document.getElementById('registerEmail').value.trim();
-            const password = document.getElementById('registerPassword').value.trim();
-            const role = document.getElementById('registerRole').value;
-            const errorEl = document.getElementById('registerError');
-            const successEl = document.getElementById('registerSuccess');
+// ============================================================
+// معالجة التسجيل - مستخدم عادي فقط
+// ============================================================
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('registerName').value.trim();
+    const email = document.getElementById('registerEmail').value.trim();
+    const password = document.getElementById('registerPassword').value.trim();
+    const errorEl = document.getElementById('registerError');
+    const successEl = document.getElementById('registerSuccess');
 
-            // إخفاء الرسائل السابقة
-            errorEl.style.display = 'none';
-            errorEl.textContent = '';
-            successEl.style.display = 'none';
-            successEl.textContent = '';
+    // إخفاء الرسائل السابقة
+    errorEl.style.display = 'none';
+    errorEl.textContent = '';
+    successEl.style.display = 'none';
+    successEl.textContent = '';
 
-            if (!name || !email || !password) {
-                errorEl.textContent = '❌ يرجى ملء جميع الحقول المطلوبة';
-                errorEl.style.display = 'block';
-                return;
-            }
+    if (!name || !email || !password) {
+        errorEl.textContent = '❌ يرجى ملء جميع الحقول المطلوبة';
+        errorEl.style.display = 'block';
+        return;
+    }
 
-            if (password.length < 6) {
-                errorEl.textContent = '❌ كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-                errorEl.style.display = 'block';
-                return;
-            }
+    if (password.length < 6) {
+        errorEl.textContent = '❌ كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+        errorEl.style.display = 'block';
+        return;
+    }
 
-            const btn = this.querySelector('button[type="submit"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري إنشاء الحساب...';
-            btn.disabled = true;
+    const btn = this.querySelector('button[type="submit"]');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري إنشاء الحساب...';
+    btn.disabled = true;
 
-            try {
-                const API_URL = window.location.hostname === 'localhost' 
-                    ? 'http://localhost:5000' 
-                    : 'https://draseh-platform-1.onrender.com';
+    try {
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:5000' 
+            : 'https://draseh-platform-1.onrender.com';
 
-                const response = await fetch(`${API_URL}/api/auth/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password, role })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    successEl.textContent = '✅ ' + data.message;
-                    successEl.style.display = 'block';
-                    this.reset();
-                    setTimeout(() => {
-                        isLoginMode = true;
-                        toggleAuthForm();
-                        document.getElementById('loginEmail').value = email;
-                        successEl.style.display = 'none';
-                    }, 2000);
-                } else {
-                    errorEl.textContent = '❌ ' + (data.message || 'حدث خطأ في التسجيل');
-                    errorEl.style.display = 'block';
-                }
-            } catch (error) {
-                console.error('❌ خطأ:', error);
-                errorEl.textContent = '❌ حدث خطأ في الاتصال بالخادم';
-                errorEl.style.display = 'block';
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
+        // ✅ إرسال role = 'user' فقط
+        const response = await fetch(`${API_URL}/api/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name,
+                email,
+                password,
+                role: 'user'  // ✅ مستخدم عادي فقط
+            })
         });
+
+        const data = await response.json();
+
+        if (data.success) {
+            successEl.textContent = '✅ ' + data.message;
+            successEl.style.display = 'block';
+            this.reset();
+            
+            setTimeout(() => {
+                isLoginMode = true;
+                toggleAuthForm();
+                document.getElementById('loginEmail').value = email;
+                successEl.style.display = 'none';
+                alert('✅ تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول.');
+            }, 2000);
+        } else {
+            errorEl.textContent = '❌ ' + (data.message || 'حدث خطأ في التسجيل');
+            errorEl.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('❌ خطأ:', error);
+        errorEl.textContent = '❌ حدث خطأ في الاتصال بالخادم';
+        errorEl.style.display = 'block';
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+});
 
         // إغلاق النافذة عند الضغط خارجها
         document.getElementById('authModal').addEventListener('click', function(e) {

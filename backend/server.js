@@ -112,8 +112,9 @@ app.use('/api/models', require('./routes/modelRoutes'));
 // ============================================================
 // 1. مسارات المصادقة (AUTH)
 // ============================================================
-
+// ============================================================
 // تسجيل مستخدم جديد
+// ============================================================
 app.post('/api/auth/register', async (req, res) => {
     try {
         const bcrypt = require('bcryptjs');
@@ -132,11 +133,16 @@ app.post('/api/auth/register', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+        // ✅ التأكد من أن الدور هو 'user' دائماً للتسجيل العام
+        // إذا تم إرسال role غير مسموح به، نضع القيمة الافتراضية 'user'
+        const allowedRoles = ['user'];
+        const userRole = allowedRoles.includes(role) ? role : 'user';
+
         const user = new User({
             name,
             email,
             password: hashedPassword,
-            role: role || 'user',
+            role: userRole,  // ✅ user فقط
             isActive: true
         });
 
