@@ -1142,75 +1142,83 @@
             fileName.textContent = file.name;
             fileSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
         }
+// ============================================================
+// رفع فيديو جديد - النسخة المصححة
+// ============================================================
+document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-        // ============================================================
-        // إرسال نموذج رفع الفيديو
-        // ============================================================
-        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+    const title = document.getElementById('videoTitle').value.trim();
+    const subjectId = document.getElementById('subjectId').value;
+    const description = document.getElementById('videoDescription').value.trim();
+    const file = document.getElementById('videoInput').files[0];
 
-            const title = document.getElementById('videoTitle').value.trim();
-            const universityId = document.getElementById('universitySelect').value;
-            const specialtyId = document.getElementById('specialtySelect').value;
-            const subjectId = document.getElementById('subjectSelect').value;
-            const description = document.getElementById('videoDescription').value.trim();
-            const file = videoInput.files[0];
+    if (!title || !subjectId || !file) {
+        alert('❌ يرجى ملء جميع الحقول المطلوبة واختيار فيديو');
+        return;
+    }
 
-            if (!title || !universityId || !specialtyId || !subjectId || !file) {
-                showAlert('❌ يرجى ملء جميع الحقول المطلوبة واختيار فيديو', 'danger');
-                return;
-            }
+    // ✅ التحقق من توكن المستخدم
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('❌ يرجى تسجيل الدخول أولاً');
+        window.location.href = 'login.html';
+        return;
+    }
 
-            // الحصول على أسماء الجامعة والتخصص والمادة
-            const uni = universitiesData.find(u => u.id === universityId);
-            const spec = uni ? uni.specialties.find(s => s.id === specialtyId) : null;
-            const sub = spec ? spec.subjects.find(s => s.id == subjectId) : null;
+    const btn = document.getElementById('submitBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الرفع...';
+    btn.disabled = true;
 
-            const btn = document.getElementById('submitBtn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الرفع...';
-            btn.disabled = true;
+    // ✅ إنشاء FormData
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('subjectId', subjectId);
+    formData.append('subjectName', document.getElementById('subjectId').selectedOptions[0]?.text || '');
+    formData.append('specialtyName', '');
+    formData.append('universityName', '');
+    formData.append('description', description);
+    formData.append('video', file);
 
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('subjectId', subjectId);
-            formData.append('subjectName', sub ? `${sub.title} (${sub.code})` : '');
-            formData.append('specialtyName', spec ? spec.name : '');
-            formData.append('universityName', uni ? uni.name : '');
-            formData.append('description', description);
-            formData.append('video', file);
+    try {
+        // ✅ استخدام الرابط الصحيح
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:5000' 
+            : 'https://draseh-platform-1.onrender.com';
 
-            try {
-                const response = await fetch('https://draseh-platform-1.onrender.com/api/videos/upload', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${currentToken}`
-                    },
-                    body: formData
-                });
+        console.log('🌐 API_URL:', API_URL);
 
-                const data = await response.json();
-
-                if (data.success) {
-                    showAlert('✅ تم رفع الفيديو بنجاح!', 'success');
-                    this.reset();
-                    fileInfo.classList.remove('show');
-                    // إعادة تعيين القوائم
-                    document.getElementById('universitySelect').value = '';
-                    document.getElementById('specialtySelect').disabled = true;
-                    document.getElementById('subjectSelect').disabled = true;
-                    loadVideos();
-                } else {
-                    showAlert('❌ خطأ: ' + data.message, 'danger');
-                }
-            } catch (error) {
-                console.error('❌ خطأ في رفع الفيديو:', error);
-                showAlert('❌ حدث خطأ في الاتصال بالخادم', 'danger');
-            } finally {
-                btn.innerHTML = '<i class="fas fa-upload"></i> رفع الفيديو';
-                btn.disabled = false;
-            }
+        const response = await fetch(`${API_URL}/api/videos/upload`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+                // ❌ لا تضع 'Content-Type' مع FormData، المتصفح سيحددها تلقائياً
+            },
+            body: formData
         });
 
+        const data = await response.json();
+        console.log('📦 الرد:', data);
+
+        if (data.success) {
+            alert('✅ تم رفع الفيديو بنجاح!');
+            this.reset();
+            // تحديث قائمة الفيديوهات
+            if (typeof loadVideos === 'function') {
+                loadVideos();
+            }
+        } else {
+            alert('❌ خطأ: ' + (data.message || 'فشل رفع الفيديو'));
+        }
+    } catch (error) {
+        console.error('❌ خطأ في رفع الفيديو:', error);
+        alert('❌ حدث خطأ في الاتصال بالخادم. تأكد من أن الخادم يعمل.');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+});
         // ============================================================
         // جلب الفيديوهات
         // ============================================================
