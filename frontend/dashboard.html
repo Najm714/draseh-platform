@@ -1409,6 +1409,15 @@
         });
 
         // ============================================================
+        // تعريف الرابط الأساسي للـ API حسب البيئة - الإصلاح الرئيسي
+        // ============================================================
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:5000' 
+            : 'https://draseh-platform-1.onrender.com';
+
+        console.log('🌐 API_URL:', API_URL);
+
+        // ============================================================
         // بيانات الخدمات الكاملة (الرئيسية والفرعية)
         // ============================================================
         const SERVICES_DATA = [{
@@ -1678,7 +1687,7 @@
         // ============================================================
         async function loadModels() {
             try {
-                const response = await fetch('https://draseh-platform-1.onrender.com/api/models');
+                const response = await fetch(`${API_URL}/api/models`);
                 const data = await response.json();
 
                 if (data.success && data.data && data.data.length > 0) {
@@ -1820,11 +1829,11 @@
         });
 
         // ============================================================
-        // عرض نموذج من المودال
+        // عرض نموذج من المودال - ✅ تم الإصلاح
         // ============================================================
         async function viewModelFromModal(id) {
             try {
-                const response = await fetch(`http://localhost:5000/api/models/${id}`);
+                const response = await fetch(`${API_URL}/api/models/${id}`);
                 const data = await response.json();
 
                 if (data.success && data.data.fileData) {
@@ -1878,7 +1887,7 @@
             if (!grid) return;
 
             try {
-                const response = await fetch('https://draseh-platform-1.onrender.com/api/models');
+                const response = await fetch(`${API_URL}/api/models`);
                 const data = await response.json();
 
                 if (!data.success || !data.data || data.data.length === 0) {
@@ -1930,11 +1939,11 @@
         }
 
         // ============================================================
-        // تحميل نموذج
+        // تحميل نموذج - ✅ تم الإصلاح
         // ============================================================
         async function downloadModel(id) {
             try {
-                const response = await fetch(`http://localhost:5000/api/models/${id}`);
+                const response = await fetch(`${API_URL}/api/models/${id}`);
                 const data = await response.json();
                 if (data.success && data.data.fileData) {
                     const link = document.createElement('a');
@@ -1952,11 +1961,11 @@
         }
 
         // ============================================================
-        // عرض نموذج
+        // عرض نموذج - ✅ تم الإصلاح
         // ============================================================
         async function viewModel(id) {
             try {
-                const response = await fetch(`http://localhost:5000/api/models/${id}`);
+                const response = await fetch(`${API_URL}/api/models/${id}`);
                 const data = await response.json();
                 if (data.success && data.data.fileData) {
                     window.open(data.data.fileData, '_blank');
@@ -1987,7 +1996,7 @@
             }
 
             try {
-                const response = await fetch('https://draseh-platform-1.onrender.com/api/orders', {
+                const response = await fetch(`${API_URL}/api/orders`, {
                     headers: { 'Authorization': `Bearer ${currentToken}` }
                 });
 
@@ -2069,7 +2078,7 @@
         }
 
         // ============================================================
-        // رفع الملفات
+        // رفع الملفات - ✅ تم الإصلاح
         // ============================================================
         async function uploadFiles(orderId) {
             const input = document.createElement('input');
@@ -2087,7 +2096,7 @@
                 }
 
                 try {
-                    const response = await fetch(`http://localhost:5000/api/orders/${orderId}/upload`, {
+                    const response = await fetch(`${API_URL}/api/orders/${orderId}/upload`, {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${currentToken}`
