@@ -348,6 +348,25 @@
             font-size: 1rem;
         }
 
+        .error-screen .btn-retry {
+            margin-top: 15px;
+            background: var(--gradient-main);
+            color: #fff;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .error-screen .btn-retry:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+        }
+
         /* رسالة منع التحميل */
         .block-message {
             position: fixed;
@@ -501,6 +520,11 @@
             color: #10B981;
         }
 
+        .video-info .meta .badge.university {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3B82F6;
+        }
+
         .video-info .description {
             margin-top: 15px;
             padding-top: 15px;
@@ -638,6 +662,9 @@
                 <i class="fas fa-exclamation-circle"></i>
                 <h3>حدث خطأ</h3>
                 <p id="errorMessage">تعذر تحميل الفيديو</p>
+                <button class="btn-retry" onclick="loadVideo()">
+                    <i class="fas fa-redo"></i> إعادة المحاولة
+                </button>
             </div>
 
             <!-- عنصر الفيديو -->
@@ -661,6 +688,9 @@
             <div class="meta">
                 <span class="badge subject" id="videoSubject">
                     <i class="fas fa-tag"></i> المادة
+                </span>
+                <span class="badge university" id="videoUniversity">
+                    <i class="fas fa-university"></i> الجامعة
                 </span>
                 <span class="badge views" id="videoViews">
                     <i class="fas fa-eye"></i> 0 مشاهدة
@@ -689,6 +719,15 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js">
     </script>
     <script>
+        // ============================================================
+        // تعريف الرابط الأساسي للـ API حسب البيئة - ✅ الإصلاح الرئيسي
+        // ============================================================
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:5000' 
+            : 'https://draseh-platform-1.onrender.com';
+
+        console.log('🌐 API_URL:', API_URL);
+
         // ============================================================
         // تفعيل AOS
         // ============================================================
@@ -810,7 +849,14 @@
         }
 
         // ============================================================
-        // تحميل الفيديو وتشغيله - الإصلاح النهائي
+        // التحقق من صحة ID الفيديو
+        // ============================================================
+        function isValidObjectId(id) {
+            return /^[0-9a-fA-F]{24}$/.test(id);
+        }
+
+        // ============================================================
+        // تحميل الفيديو وتشغيله - ✅ النسخة النهائية
         // ============================================================
         async function loadVideo() {
             const loadingScreen = document.getElementById('loadingScreen');
@@ -819,6 +865,7 @@
             const videoSource = document.getElementById('videoSource');
             const loadingProgress = document.getElementById('loadingProgress');
 
+            // ✅ التحقق من وجود ID
             if (!videoId) {
                 loadingScreen.classList.add('hide');
                 errorScreen.classList.add('show');
@@ -826,26 +873,47 @@
                 return;
             }
 
+            // ✅ التحقق من صحة الـ ID
+            if (!isValidObjectId(videoId)) {
+                loadingScreen.classList.add('hide');
+                errorScreen.classList.add('show');
+                document.getElementById('errorMessage').textContent = 'معرف الفيديو غير صالح';
+                console.error('❌ ID غير صالح:', videoId);
+                return;
+            }
+
             try {
                 console.log('🔍 جاري تحميل الفيديو ID:', videoId);
                 
-                const response = await fetch(`http://localhost:5000/api/videos/${videoId}`);
+                // ✅ جلب بيانات الفيديو من الخادم
+                const response = await fetch(`${API_URL}/api/videos/${videoId}`);
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('الفيديو غير موجود');
+                    }
+                    if (response.status === 400) {
+                        throw new Error('معرف الفيديو غير صالح');
+                    }
+                    throw new Error(`خطأ في الخادم: ${response.status}`);
+                }
+
                 const data = await response.json();
+                console.log('📦 بيانات الفيديو:', data);
 
-                console.log('📦 بيانات الفيديو من الخادم:', data);
-
-                if (data.success) {
+                if (data.success && data.data) {
                     const video = data.data;
                     
-                    // تحديث المعلومات
+                    // ✅ تحديث معلومات الفيديو
                     document.getElementById('videoTitle').textContent = video.title || 'بدون عنوان';
                     document.getElementById('videoSubject').innerHTML = `<i class="fas fa-tag"></i> ${video.subjectName || 'مادة'}`;
+                    document.getElementById('videoUniversity').innerHTML = `<i class="fas fa-university"></i> ${video.universityName || 'جامعة'}`;
                     document.getElementById('videoViews').innerHTML = `<i class="fas fa-eye"></i> ${video.views || 0} مشاهدة`;
                     document.getElementById('videoDate').innerHTML = `<i class="fas fa-calendar-alt"></i> ${video.uploadDate ? new Date(video.uploadDate).toLocaleDateString('ar-SA') : '-'}`;
                     document.getElementById('videoSize').innerHTML = `<i class="fas fa-weight-hanging"></i> ${video.fileSize || 'غير محدد'}`;
                     document.getElementById('videoDescription').textContent = video.description || 'لا يوجد وصف للفيديو';
 
-                    // ✅ بناء رابط الفيديو بشكل صحيح
+                    // ✅ بناء رابط الفيديو
                     let videoUrl = '';
                     
                     console.log('📁 بيانات الملف:', {
@@ -853,21 +921,20 @@
                         filePath: video.filePath
                     });
 
-                    // ✅ الطريقة 1: استخدام filename
+                    // الطريقة 1: استخدام filename
                     if (video.filename) {
-                        videoUrl = `http://localhost:5000/uploads/videos/${video.filename}`;
+                        videoUrl = `${API_URL}/uploads/videos/${video.filename}`;
                         console.log('✅ باستخدام filename:', videoUrl);
                     } 
-                    // ✅ الطريقة 2: استخدام filePath
+                    // الطريقة 2: استخدام filePath
                     else if (video.filePath) {
-                        // استخراج اسم الملف من المسار
                         let fileName = video.filePath.split('/').pop().split('\\').pop();
                         if (fileName) {
-                            videoUrl = `http://localhost:5000/uploads/videos/${fileName}`;
+                            videoUrl = `${API_URL}/uploads/videos/${fileName}`;
                             console.log('✅ باستخدام filePath:', videoUrl);
                         }
                     } 
-                    // ✅ الطريقة 3: استخدام fileData
+                    // الطريقة 3: استخدام fileData (base64)
                     else if (video.fileData && video.fileData.startsWith('data:video/')) {
                         videoUrl = video.fileData;
                         console.log('✅ باستخدام fileData (base64)');
@@ -884,16 +951,30 @@
                     videoPlayer.load();
 
                     // ✅ مراقبة حالة التحميل
+                    let progressInterval = setInterval(() => {
+                        const buffered = videoPlayer.buffered;
+                        if (buffered.length > 0) {
+                            const progress = (buffered.end(0) / videoPlayer.duration) * 100;
+                            loadingProgress.style.width = Math.min(progress, 100) + '%';
+                            if (progress >= 100) {
+                                clearInterval(progressInterval);
+                            }
+                        }
+                    }, 500);
+
+                    // ✅ أحداث الفيديو
                     videoPlayer.addEventListener('loadedmetadata', function() {
                         console.log('✅ تم تحميل بيانات الفيديو بنجاح');
                         loadingScreen.classList.add('hide');
                         loadingProgress.style.width = '100%';
+                        clearInterval(progressInterval);
                     });
 
                     videoPlayer.addEventListener('canplay', function() {
                         console.log('✅ الفيديو جاهز للتشغيل');
                         loadingScreen.classList.add('hide');
                         loadingProgress.style.width = '100%';
+                        clearInterval(progressInterval);
                     });
 
                     videoPlayer.addEventListener('error', function(e) {
@@ -904,7 +985,8 @@
                         loadingScreen.classList.add('hide');
                         errorScreen.classList.add('show');
                         document.getElementById('errorMessage').textContent = 
-                            `تعذر تشغيل الفيديو. يرجى التأكد من أن الملف موجود: ${videoUrl}`;
+                            `تعذر تشغيل الفيديو. يرجى التأكد من أن الملف موجود.`;
+                        clearInterval(progressInterval);
                     });
 
                     // ✅ محاولة تشغيل الفيديو تلقائياً
@@ -916,7 +998,7 @@
 
                     // ✅ تحديث عدد المشاهدات
                     try {
-                        await fetch(`http://localhost:5000/api/videos/${videoId}/views`, {
+                        await fetch(`${API_URL}/api/videos/${videoId}/views`, {
                             method: 'PUT'
                         });
                         console.log('✅ تم تحديث عدد المشاهدات');
@@ -936,7 +1018,7 @@
                 console.error('❌ خطأ في تحميل الفيديو:', error);
                 loadingScreen.classList.add('hide');
                 errorScreen.classList.add('show');
-                document.getElementById('errorMessage').textContent = 'حدث خطأ في تحميل الفيديو: ' + error.message;
+                document.getElementById('errorMessage').textContent = error.message || 'حدث خطأ في تحميل الفيديو';
             }
         }
 
@@ -944,11 +1026,19 @@
         // تشغيل التطبيق
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎬 تم تحميل مشغل الفيديو مع نظام حماية متقدم');
+            console.log('🛡️ الفيديو محمي ضد التحميل والتسجيل والتقاط الشاشة');
+            console.log('🌐 API_URL:', API_URL);
+            console.log('📹 Video ID:', videoId);
             loadVideo();
         });
 
-        console.log('🎬 تم تحميل مشغل الفيديو مع نظام حماية متقدم');
-        console.log('🛡️ الفيديو محمي ضد التحميل والتسجيل والتقاط الشاشة');
+        // ============================================================
+        // جعل الدوال متاحة عالمياً
+        // ============================================================
+        window.loadVideo = loadVideo;
+        window.closeBlockMessage = closeBlockMessage;
+        window.toggleTheme = toggleTheme;
     </script>
 
 </body>

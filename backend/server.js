@@ -240,12 +240,11 @@ app.get('/api/auth/me', protect, async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
-
 // ============================================================
-// 2. مسارات الفيديوهات (VIDEOS)
+// 2. مسارات الفيديوهات (VIDEOS) - الترتيب الصحيح
 // ============================================================
 
-// رفع فيديو جديد
+// ✅ 1. رفع فيديو جديد (يجب أن يكون قبل مسار :id)
 app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => {
     try {
         console.log('📁 استلام فيديو:', req.file);
@@ -300,7 +299,7 @@ app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => 
     }
 });
 
-// جلب جميع الفيديوهات
+// ✅ 2. جلب جميع الفيديوهات
 app.get('/api/videos/all', async (req, res) => {
     try {
         const videos = await Video.find().sort({ uploadDate: -1 });
@@ -315,7 +314,7 @@ app.get('/api/videos/all', async (req, res) => {
     }
 });
 
-// جلب فيديوهات مادة معينة
+// ✅ 3. جلب فيديوهات مادة معينة
 app.get('/api/videos/subject/:subjectId', async (req, res) => {
     try {
         const videos = await Video.find({ subjectId: parseInt(req.params.subjectId) });
@@ -330,7 +329,7 @@ app.get('/api/videos/subject/:subjectId', async (req, res) => {
     }
 });
 
-// جلب فيديو محدد
+// ✅ 4. جلب فيديو محدد (يجب أن يكون بعد جميع المسارات المحددة)
 app.get('/api/videos/:id', async (req, res) => {
     try {
         const video = await Video.findById(req.params.id);
@@ -346,11 +345,18 @@ app.get('/api/videos/:id', async (req, res) => {
         });
     } catch (error) {
         console.error('❌ خطأ في جلب الفيديو:', error);
+        // ✅ معالجة خطأ CastError
+        if (error.name === 'CastError' || error.kind === 'ObjectId') {
+            return res.status(404).json({
+                success: false,
+                message: 'الفيديو غير موجود'
+            });
+        }
         res.status(500).json({ success: false, message: error.message });
     }
 });
 
-// تحديث عدد المشاهدات
+// ✅ 5. تحديث عدد المشاهدات
 app.put('/api/videos/:id/views', async (req, res) => {
     try {
         const video = await Video.findByIdAndUpdate(
@@ -370,11 +376,17 @@ app.put('/api/videos/:id/views', async (req, res) => {
         });
     } catch (error) {
         console.error('❌ خطأ في تحديث المشاهدات:', error);
+        if (error.name === 'CastError' || error.kind === 'ObjectId') {
+            return res.status(404).json({
+                success: false,
+                message: 'الفيديو غير موجود'
+            });
+        }
         res.status(500).json({ success: false, message: error.message });
     }
 });
 
-// حذف فيديو
+// ✅ 6. حذف فيديو (للمدير فقط)
 app.delete('/api/videos/:id', protect, authorize('admin'), async (req, res) => {
     try {
         const video = await Video.findById(req.params.id);
@@ -396,6 +408,12 @@ app.delete('/api/videos/:id', protect, authorize('admin'), async (req, res) => {
         });
     } catch (error) {
         console.error('❌ خطأ في حذف الفيديو:', error);
+        if (error.name === 'CastError' || error.kind === 'ObjectId') {
+            return res.status(404).json({
+                success: false,
+                message: 'الفيديو غير موجود'
+            });
+        }
         res.status(500).json({ success: false, message: error.message });
     }
 });
