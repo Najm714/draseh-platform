@@ -1,3 +1,4 @@
+// backend/server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -28,6 +29,7 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 // ============================================================
 const uploadsDir = path.join(__dirname, 'uploads');
 const videosDir = path.join(uploadsDir, 'videos');
+const ordersDir = path.join(uploadsDir, 'orders');
 
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
@@ -37,12 +39,17 @@ if (!fs.existsSync(videosDir)) {
     fs.mkdirSync(videosDir, { recursive: true });
     console.log('📁 تم إنشاء مجلد videos');
 }
+if (!fs.existsSync(ordersDir)) {
+    fs.mkdirSync(ordersDir, { recursive: true });
+    console.log('📁 تم إنشاء مجلد orders');
+}
 
 // ============================================================
 // خدمة الملفات الثابتة (Uploads)
 // ============================================================
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads/videos', express.static(path.join(__dirname, 'uploads', 'videos')));
+app.use('/uploads/orders', express.static(path.join(__dirname, 'uploads', 'orders')));
 
 // ============================================================
 // الاتصال بقاعدة البيانات
@@ -495,12 +502,10 @@ app.delete('/api/models/:id', protect, authorize('admin'), async (req, res) => {
 // ============================================================
 // 4. مسارات الطلبات (ORDERS)
 // ============================================================
-// ============================================================
+
 // جلب جميع الطلبات للمدير - مع معالجة user: null
-// ============================================================
 app.get('/api/orders/admin/all', protect, authorize('admin'), async (req, res) => {
     try {
-        const Order = require('./models/Order');
         const orders = await Order.find()
             .populate({
                 path: 'user',
@@ -512,7 +517,7 @@ app.get('/api/orders/admin/all', protect, authorize('admin'), async (req, res) =
             })
             .sort({ createdAt: -1 });
         
-        // ✅ معالجة الطلبات التي ليس لها مستخدم
+        // معالجة الطلبات التي ليس لها مستخدم
         const processedOrders = orders.map(order => {
             const orderObj = order.toObject();
             if (!orderObj.user) {
@@ -545,14 +550,10 @@ app.get('/api/orders/admin/all', protect, authorize('admin'), async (req, res) =
         });
     }
 });
-// ============================================================
+
 // جلب طلبات الخبير - مع معالجة user: null
-// ============================================================
 app.get('/api/orders/expert', protect, authorize('expert'), async (req, res) => {
     try {
-        const Order = require('./models/Order');
-        
-        // ✅ جلب الطلبات المسندة إلى هذا الخبير
         const orders = await Order.find({ assignedExpert: req.user.id })
             .populate({
                 path: 'user',
@@ -564,11 +565,8 @@ app.get('/api/orders/expert', protect, authorize('expert'), async (req, res) => 
             })
             .sort({ assignedAt: -1, createdAt: -1 });
             
-        // ✅ معالجة الطلبات التي ليس لها مستخدم
         const processedOrders = orders.map(order => {
             const orderObj = order.toObject();
-            
-            // ✅ إذا كان user غير موجود، نضيف بيانات افتراضية
             if (!orderObj.user) {
                 orderObj.user = {
                     _id: null,
@@ -576,8 +574,6 @@ app.get('/api/orders/expert', protect, authorize('expert'), async (req, res) => 
                     email: 'لا يوجد بريد إلكتروني'
                 };
             }
-            
-            // ✅ إذا كان assignedExpert غير موجود
             if (!orderObj.assignedExpert) {
                 orderObj.assignedExpert = {
                     _id: null,
@@ -585,7 +581,6 @@ app.get('/api/orders/expert', protect, authorize('expert'), async (req, res) => 
                     email: ''
                 };
             }
-            
             return orderObj;
         });
 
@@ -596,8 +591,6 @@ app.get('/api/orders/expert', protect, authorize('expert'), async (req, res) => 
         });
     } catch (error) {
         console.error('❌ خطأ في جلب طلبات الخبير:', error);
-        
-        // ✅ معالجة خطأ CastError
         if (error.name === 'CastError' || (error.message && error.message.includes('CastError'))) {
             return res.status(200).json({
                 success: true,
@@ -605,19 +598,16 @@ app.get('/api/orders/expert', protect, authorize('expert'), async (req, res) => 
                 data: []
             });
         }
-        
         res.status(500).json({
             success: false,
             message: error.message || 'حدث خطأ في جلب الطلبات'
         });
     }
 });
-// ============================================================
-// جلب طلبات المستخدم - مع معالجة user: null
-// ============================================================
+
+// جلب طلبات المستخدم
 app.get('/api/orders', protect, async (req, res) => {
     try {
-        const Order = require('./models/Order');
         const filter = req.user?.id ? { user: req.user.id } : {};
         const orders = await Order.find(filter)
             .populate({
@@ -648,11 +638,10 @@ app.get('/api/orders', protect, async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
+
 // إنشاء طلب جديد
 app.post('/api/orders', protect, async (req, res) => {
     try {
-        const Order = require('./models/Order');
-        
         const orderData = {
             serviceType: req.body.serviceType || 'خدمة',
             title: req.body.title || 'طلب جديد',
@@ -679,7 +668,6 @@ app.post('/api/orders', protect, async (req, res) => {
 // جلب طلب محدد
 app.get('/api/orders/:id', protect, async (req, res) => {
     try {
-        const Order = require('./models/Order');
         const order = await Order.findById(req.params.id)
             .populate('user', 'name email')
             .populate('assignedExpert', 'name email');
@@ -716,7 +704,6 @@ app.get('/api/orders/:id', protect, async (req, res) => {
 // تحديث طلب
 app.put('/api/orders/:id', protect, async (req, res) => {
     try {
-        const Order = require('./models/Order');
         let order = await Order.findById(req.params.id);
 
         if (!order) {
@@ -762,7 +749,6 @@ app.put('/api/orders/:id', protect, async (req, res) => {
 // حذف طلب
 app.delete('/api/orders/:id', protect, async (req, res) => {
     try {
-        const Order = require('./models/Order');
         const order = await Order.findById(req.params.id);
 
         if (!order) {
@@ -783,6 +769,19 @@ app.delete('/api/orders/:id', protect, async (req, res) => {
             });
         }
 
+        // حذف الملفات المرتبطة بالطلب من الخادم
+        if (order.files && order.files.length > 0) {
+            for (const file of order.files) {
+                if (file.filePath && fs.existsSync(file.filePath)) {
+                    try {
+                        fs.unlinkSync(file.filePath);
+                    } catch (err) {
+                        console.error('❌ خطأ في حذف الملف:', err);
+                    }
+                }
+            }
+        }
+
         await order.deleteOne();
 
         res.status(200).json({
@@ -796,10 +795,8 @@ app.delete('/api/orders/:id', protect, async (req, res) => {
 });
 
 // رفع ملفات للطلب
-app.post('/api/orders/:id/upload', protect, upload.array('files', 5), async (req, res) => {
+app.post('/api/orders/:orderId/upload', protect, upload.array('files', 5), async (req, res) => {
     try {
-        const Order = require('./models/Order');
-        
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({
                 success: false,
@@ -807,7 +804,7 @@ app.post('/api/orders/:id/upload', protect, upload.array('files', 5), async (req
             });
         }
 
-        const order = await Order.findById(req.params.id);
+        const order = await Order.findById(req.params.orderId);
         if (!order) {
             return res.status(404).json({
                 success: false,
@@ -828,8 +825,10 @@ app.post('/api/orders/:id/upload', protect, upload.array('files', 5), async (req
 
         const fileData = req.files.map(file => ({
             filename: file.originalname || file.filename,
-            path: `uploads/${file.filename}`,
-            size: file.size,
+            filePath: file.path ? file.path.replace(/\\/g, '/') : null,
+            fileId: file.filename || `file_${Date.now()}`,
+            fileSize: file.size,
+            mimeType: file.mimetype,
             uploadDate: new Date()
         }));
 
@@ -839,7 +838,10 @@ app.post('/api/orders/:id/upload', protect, upload.array('files', 5), async (req
         res.status(200).json({
             success: true,
             message: `تم رفع ${req.files.length} ملف بنجاح ✅`,
-            data: order
+            data: {
+                files: fileData,
+                order: order
+            }
         });
     } catch (error) {
         console.error('❌ خطأ في رفع الملفات:', error);
@@ -848,10 +850,9 @@ app.post('/api/orders/:id/upload', protect, upload.array('files', 5), async (req
 });
 
 // جلب ملفات الطلب
-app.get('/api/orders/:id/files', protect, async (req, res) => {
+app.get('/api/orders/:orderId/files', protect, async (req, res) => {
     try {
-        const Order = require('./models/Order');
-        const order = await Order.findById(req.params.id);
+        const order = await Order.findById(req.params.orderId);
         
         if (!order) {
             return res.status(404).json({
@@ -885,7 +886,6 @@ app.get('/api/orders/:id/files', protect, async (req, res) => {
 // تحميل ملف معين
 app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
     try {
-        const Order = require('./models/Order');
         const order = await Order.findById(req.params.orderId);
         
         if (!order) {
@@ -917,21 +917,53 @@ app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
 
         const file = order.files[fileIndex];
         
-        // ✅ بناء المسار الصحيح
-        let filePath;
-        let fileName = file.filename;
+        // البحث عن الملف في عدة مسارات
+        const possiblePaths = [];
         
-        if (file.path) {
-            const parts = file.path.split('/');
-            fileName = parts[parts.length - 1];
+        // 1. استخدام المسار المخزن
+        if (file.filePath) {
+            possiblePaths.push(file.filePath);
         }
         
-        const possiblePaths = [
-            path.join(__dirname, 'uploads', fileName),
-            path.join(__dirname, file.path),
-            path.join(__dirname, '../uploads', fileName)
+        // 2. البحث في مجلد uploads
+        const uploadsDir = path.join(__dirname, 'uploads');
+        const ordersUploadsDir = path.join(__dirname, 'uploads', 'orders');
+        
+        // أسماء محتملة للملف
+        const possibleNames = [
+            file.filename,
+            file.fileId,
+            `${req.params.orderId}_${file.filename}`,
+            `${req.params.orderId}_${file.fileId}`
         ];
         
+        // البحث في مجلد uploads
+        if (fs.existsSync(uploadsDir)) {
+            const files = fs.readdirSync(uploadsDir);
+            for (const f of files) {
+                for (const name of possibleNames) {
+                    if (f.includes(name) || name.includes(f)) {
+                        possiblePaths.push(path.join(uploadsDir, f));
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // البحث في مجلد uploads/orders
+        if (fs.existsSync(ordersUploadsDir)) {
+            const files = fs.readdirSync(ordersUploadsDir);
+            for (const f of files) {
+                for (const name of possibleNames) {
+                    if (f.includes(name) || name.includes(f)) {
+                        possiblePaths.push(path.join(ordersUploadsDir, f));
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // البحث عن مسار صحيح
         let foundPath = null;
         for (const p of possiblePaths) {
             if (fs.existsSync(p)) {
@@ -947,7 +979,7 @@ app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
             });
         }
 
-        res.download(foundPath, file.filename || fileName);
+        res.download(foundPath, file.filename);
     } catch (error) {
         console.error('❌ خطأ في تحميل الملف:', error);
         res.status(500).json({
@@ -957,10 +989,172 @@ app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
     }
 });
 
+// ✅ تحديث حالة الطلب
+app.put('/api/orders/:id/status', protect, async (req, res) => {
+    try {
+        const { status } = req.body;
+        const validStatuses = ['pending', 'in-progress', 'completed', 'revision', 'cancelled'];
+        
+        if (!status || !validStatuses.includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'حالة غير صالحة. الحالات المتاحة: ' + validStatuses.join(', ')
+            });
+        }
+
+        const order = await Order.findById(req.params.id);
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'الطلب غير موجود ❌'
+            });
+        }
+
+        // التحقق من الصلاحيات
+        const isAuthorized = 
+            req.user.role === 'admin' || 
+            (req.user.role === 'expert' && order.assignedExpert && req.user.id === order.assignedExpert.toString());
+
+        if (!isAuthorized) {
+            return res.status(403).json({
+                success: false,
+                message: 'ليس لديك صلاحية لتحديث حالة هذا الطلب'
+            });
+        }
+
+        order.status = status;
+        await order.save();
+
+        // إعادة الطلب مع البيانات الكاملة
+        const populatedOrder = await Order.findById(order._id)
+            .populate('user', 'name email')
+            .populate('assignedExpert', 'name email');
+
+        res.status(200).json({
+            success: true,
+            message: `تم تحديث حالة الطلب إلى ${status} ✅`,
+            data: populatedOrder
+        });
+    } catch (error) {
+        console.error('❌ خطأ في تحديث حالة الطلب:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// ✅ جلب معلومات الملفات
+app.get('/api/orders/:orderId/files-info', protect, async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.orderId);
+        
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'الطلب غير موجود'
+            });
+        }
+
+        const isAuthorized = 
+            req.user.role === 'admin' || 
+            (order.user && req.user.id === order.user.toString()) ||
+            (req.user.role === 'expert' && order.assignedExpert && req.user.id === order.assignedExpert.toString());
+
+        if (!isAuthorized) {
+            return res.status(403).json({
+                success: false,
+                message: 'ليس لديك صلاحية لعرض معلومات الملفات'
+            });
+        }
+
+        const filesInfo = (order.files || []).map((file, index) => ({
+            index: index,
+            filename: file.filename,
+            fileId: file.fileId,
+            filePath: file.filePath,
+            fileSize: file.fileSize,
+            mimeType: file.mimeType,
+            uploadDate: file.uploadDate,
+            exists: file.filePath ? fs.existsSync(file.filePath) : false
+        }));
+
+        res.status(200).json({
+            success: true,
+            count: filesInfo.length,
+            data: filesInfo
+        });
+    } catch (error) {
+        console.error('❌ خطأ في جلب معلومات الملفات:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// ✅ حذف ملف
+app.delete('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.orderId);
+        
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'الطلب غير موجود'
+            });
+        }
+
+        const isAuthorized = 
+            req.user.role === 'admin' || 
+            (order.user && req.user.id === order.user.toString());
+
+        if (!isAuthorized) {
+            return res.status(403).json({
+                success: false,
+                message: 'ليس لديك صلاحية لحذف هذا الملف'
+            });
+        }
+
+        const fileIndex = parseInt(req.params.fileIndex);
+        if (isNaN(fileIndex) || fileIndex < 0 || fileIndex >= order.files.length) {
+            return res.status(404).json({
+                success: false,
+                message: 'الملف غير موجود'
+            });
+        }
+
+        const file = order.files[fileIndex];
+        
+        // حذف الملف من الخادم
+        if (file.filePath && fs.existsSync(file.filePath)) {
+            try {
+                fs.unlinkSync(file.filePath);
+            } catch (err) {
+                console.error('❌ خطأ في حذف الملف من الخادم:', err);
+            }
+        }
+
+        // حذف الملف من قاعدة البيانات
+        order.files.splice(fileIndex, 1);
+        await order.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'تم حذف الملف بنجاح 🗑️'
+        });
+    } catch (error) {
+        console.error('❌ خطأ في حذف الملف:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
 // تعيين خبير للطلب
 app.put('/api/orders/:id/assign-expert', protect, authorize('admin'), async (req, res) => {
     try {
-        const Order = require('./models/Order');
         const { expertId, notes } = req.body;
         
         if (!expertId) {
@@ -1161,4 +1355,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
     console.log(`✅ الخادم يعمل على http://localhost:${PORT}`);
     console.log(`📁 مجلد الفيديوهات: ${videosDir}`);
+    console.log(`📁 مجلد الطلبات: ${ordersDir}`);
 });

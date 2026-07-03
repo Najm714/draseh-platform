@@ -31,7 +31,7 @@ const OrderSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: false  // ✅ غير مطلوب
+        required: false
     },
     assignedExpert: {
         type: mongoose.Schema.Types.ObjectId,
@@ -42,10 +42,16 @@ const OrderSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    adminNotes: {
+        type: String,
+        default: ''
+    },
     files: [{
         filename: String,
-        path: String,
-        size: Number,
+        filePath: String,     // ✅ المسار الكامل للملف
+        fileId: String,       // ✅ الاسم الفريد للملف
+        fileSize: Number,
+        mimeType: String,
         uploadDate: {
             type: Date,
             default: Date.now
