@@ -243,8 +243,9 @@ app.get('/api/auth/me', protect, async (req, res) => {
 // ============================================================
 // 2. مسارات الفيديوهات (VIDEOS) - الترتيب الصحيح
 // ============================================================
-
-// ✅ 1. رفع فيديو جديد (يجب أن يكون قبل مسار :id)
+// ============================================================
+// رفع فيديو جديد - النسخة المصححة
+// ============================================================
 app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => {
     try {
         console.log('📁 استلام فيديو:', req.file);
@@ -266,6 +267,15 @@ app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => 
             });
         }
 
+        // ✅ استخراج اسم الملف فقط من المسار الكامل
+        const fileName = req.file.filename;
+        
+        // ✅ بناء المسار العام للملف (وليس المسار الكامل للنظام)
+        const publicPath = `/uploads/videos/${fileName}`;
+
+        console.log('📁 اسم الملف:', fileName);
+        console.log('📁 المسار العام:', publicPath);
+
         const video = new Video({
             title: title,
             subjectId: parseInt(subjectId),
@@ -273,8 +283,8 @@ app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => 
             specialtyName: specialtyName || '',
             universityName: universityName || '',
             description: description || '',
-            fileName: req.file.filename,
-            filePath: req.file.path,
+            fileName: fileName,                          // ✅ اسم الملف فقط
+            filePath: publicPath,                        // ✅ المسار العام
             fileSize: (req.file.size / (1024 * 1024)).toFixed(2) + ' MB',
             fileType: req.file.mimetype,
             uploadDate: new Date(),
@@ -284,6 +294,7 @@ app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => 
         await video.save();
 
         console.log('✅ تم رفع الفيديو:', video.title);
+        console.log('✅ المسار المخزن:', video.filePath);
 
         res.status(201).json({
             success: true,
@@ -298,7 +309,6 @@ app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => 
         });
     }
 });
-
 // ✅ 2. جلب جميع الفيديوهات
 app.get('/api/videos/all', async (req, res) => {
     try {

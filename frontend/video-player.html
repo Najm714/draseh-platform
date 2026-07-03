@@ -720,7 +720,7 @@
     </script>
     <script>
         // ============================================================
-        // تعريف الرابط الأساسي للـ API حسب البيئة - ✅ الإصلاح الرئيسي
+        // تعريف الرابط الأساسي للـ API حسب البيئة
         // ============================================================
         const API_URL = window.location.hostname === 'localhost' 
             ? 'http://localhost:5000' 
@@ -806,21 +806,18 @@
             const video = document.getElementById('videoPlayer');
             const container = document.getElementById('videoContainer');
 
-            // منع النقر بزر الماوس الأيمن
             container.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
                 showBlockMessage('🚫 تم تعطيل القائمة المنبثقة لحماية المحتوى');
                 return false;
             });
 
-            // منع السحب والإفلات
             container.addEventListener('dragstart', function(e) {
                 e.preventDefault();
                 showBlockMessage('🚫 لا يُسمح بسحب الفيديو');
                 return false;
             });
 
-            // منع اختصارات لوحة المفاتيح
             document.addEventListener('keydown', function(e) {
                 const ctrl = e.ctrlKey || e.metaKey;
                 const key = e.key.toLowerCase();
@@ -838,7 +835,6 @@
                 }
             });
 
-            // منع النسخ
             document.addEventListener('copy', function(e) {
                 e.preventDefault();
                 showBlockMessage('🚫 لا يُسمح بنسخ المحتوى');
@@ -856,7 +852,7 @@
         }
 
         // ============================================================
-        // تحميل الفيديو وتشغيله - ✅ النسخة النهائية
+        // تحميل الفيديو وتشغيله
         // ============================================================
         async function loadVideo() {
             const loadingScreen = document.getElementById('loadingScreen');
@@ -865,7 +861,6 @@
             const videoSource = document.getElementById('videoSource');
             const loadingProgress = document.getElementById('loadingProgress');
 
-            // ✅ التحقق من وجود ID
             if (!videoId) {
                 loadingScreen.classList.add('hide');
                 errorScreen.classList.add('show');
@@ -873,7 +868,6 @@
                 return;
             }
 
-            // ✅ التحقق من صحة الـ ID
             if (!isValidObjectId(videoId)) {
                 loadingScreen.classList.add('hide');
                 errorScreen.classList.add('show');
@@ -885,7 +879,6 @@
             try {
                 console.log('🔍 جاري تحميل الفيديو ID:', videoId);
                 
-                // ✅ جلب بيانات الفيديو من الخادم
                 const response = await fetch(`${API_URL}/api/videos/${videoId}`);
                 
                 if (!response.ok) {
@@ -904,7 +897,7 @@
                 if (data.success && data.data) {
                     const video = data.data;
                     
-                    // ✅ تحديث معلومات الفيديو
+                    // تحديث معلومات الفيديو
                     document.getElementById('videoTitle').textContent = video.title || 'بدون عنوان';
                     document.getElementById('videoSubject').innerHTML = `<i class="fas fa-tag"></i> ${video.subjectName || 'مادة'}`;
                     document.getElementById('videoUniversity').innerHTML = `<i class="fas fa-university"></i> ${video.universityName || 'جامعة'}`;
@@ -913,44 +906,38 @@
                     document.getElementById('videoSize').innerHTML = `<i class="fas fa-weight-hanging"></i> ${video.fileSize || 'غير محدد'}`;
                     document.getElementById('videoDescription').textContent = video.description || 'لا يوجد وصف للفيديو';
 
-                    // ✅ بناء رابط الفيديو
+                    // ✅ بناء رابط الفيديو - باستخدام fileName فقط
                     let videoUrl = '';
                     
                     console.log('📁 بيانات الملف:', {
-                        filename: video.filename,
+                        fileName: video.fileName,
                         filePath: video.filePath
                     });
 
-                    // الطريقة 1: استخدام filename
-                    if (video.filename) {
-                        videoUrl = `${API_URL}/uploads/videos/${video.filename}`;
-                        console.log('✅ باستخدام filename:', videoUrl);
+                    // ✅ الطريقة الصحيحة: استخدام fileName
+                    if (video.fileName) {
+                        videoUrl = `${API_URL}/uploads/videos/${video.fileName}`;
+                        console.log('✅ باستخدام fileName:', videoUrl);
                     } 
-                    // الطريقة 2: استخدام filePath
+                    // ✅ في حال عدم وجود fileName، استخدم filePath
                     else if (video.filePath) {
+                        // استخراج اسم الملف من المسار
                         let fileName = video.filePath.split('/').pop().split('\\').pop();
                         if (fileName) {
                             videoUrl = `${API_URL}/uploads/videos/${fileName}`;
                             console.log('✅ باستخدام filePath:', videoUrl);
                         }
-                    } 
-                    // الطريقة 3: استخدام fileData (base64)
-                    else if (video.fileData && video.fileData.startsWith('data:video/')) {
-                        videoUrl = video.fileData;
-                        console.log('✅ باستخدام fileData (base64)');
                     } else {
                         throw new Error('لا يمكن تحديد مسار الفيديو');
                     }
 
                     console.log('🎬 الرابط النهائي للفيديو:', videoUrl);
 
-                    // ✅ تعيين مصدر الفيديو
+                    // تعيين مصدر الفيديو
                     videoSource.src = videoUrl;
-                    
-                    // ✅ إعادة تحميل الفيديو
                     videoPlayer.load();
 
-                    // ✅ مراقبة حالة التحميل
+                    // مراقبة حالة التحميل
                     let progressInterval = setInterval(() => {
                         const buffered = videoPlayer.buffered;
                         if (buffered.length > 0) {
@@ -962,7 +949,6 @@
                         }
                     }, 500);
 
-                    // ✅ أحداث الفيديو
                     videoPlayer.addEventListener('loadedmetadata', function() {
                         console.log('✅ تم تحميل بيانات الفيديو بنجاح');
                         loadingScreen.classList.add('hide');
@@ -979,9 +965,6 @@
 
                     videoPlayer.addEventListener('error', function(e) {
                         console.error('❌ خطأ في تشغيل الفيديو:', e);
-                        const errorMsg = videoPlayer.error;
-                        console.error('تفاصيل الخطأ:', errorMsg);
-                        
                         loadingScreen.classList.add('hide');
                         errorScreen.classList.add('show');
                         document.getElementById('errorMessage').textContent = 
@@ -989,14 +972,14 @@
                         clearInterval(progressInterval);
                     });
 
-                    // ✅ محاولة تشغيل الفيديو تلقائياً
+                    // محاولة تشغيل الفيديو تلقائياً
                     setTimeout(() => {
                         videoPlayer.play().catch(err => {
                             console.log('⚠️ التشغيل التلقائي غير مسموح:', err);
                         });
                     }, 500);
 
-                    // ✅ تحديث عدد المشاهدات
+                    // تحديث عدد المشاهدات
                     try {
                         await fetch(`${API_URL}/api/videos/${videoId}/views`, {
                             method: 'PUT'
@@ -1006,7 +989,7 @@
                         console.warn('⚠️ خطأ في تحديث المشاهدات:', viewError);
                     }
 
-                    // ✅ تفعيل نظام الحماية
+                    // تفعيل نظام الحماية
                     setTimeout(setupProtection, 1000);
 
                 } else {

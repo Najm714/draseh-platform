@@ -829,6 +829,15 @@
     </script>
     <script>
         // ============================================================
+        // تعريف الرابط الأساسي للـ API حسب البيئة - ✅ الإصلاح الرئيسي
+        // ============================================================
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:5000' 
+            : 'https://draseh-platform-1.onrender.com';
+
+        console.log('🌐 API_URL:', API_URL);
+
+        // ============================================================
         // تفعيل AOS
         // ============================================================
         AOS.init({
@@ -911,7 +920,7 @@
         }
 
         // ============================================================
-        // جلب فيديوهات المادة
+        // جلب فيديوهات المادة - ✅ استخدام API_URL
         // ============================================================
         async function loadVideos() {
             const grid = document.getElementById('videosGrid');
@@ -934,8 +943,20 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:5000/api/videos/subject/${currentSubjectId}`);
+                console.log(`🔍 جاري تحميل فيديوهات المادة: ${currentSubjectId}`);
+                
+                // ✅ استخدام API_URL
+                const response = await fetch(`${API_URL}/api/videos/subject/${currentSubjectId}`);
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('المادة غير موجودة');
+                    }
+                    throw new Error(`خطأ في الخادم: ${response.status}`);
+                }
+
                 const data = await response.json();
+                console.log('📦 بيانات الفيديوهات:', data);
 
                 countEl.textContent = `${data.count || 0} فيديو`;
 
@@ -964,7 +985,7 @@
                     <div class="empty-state">
                         <i class="fas fa-exclamation-circle" style="color:#EF4444;"></i>
                         <h3 style="color:#EF4444;">حدث خطأ</h3>
-                        <p>تعذر تحميل الفيديوهات</p>
+                        <p>${error.message || 'تعذر تحميل الفيديوهات'}</p>
                         <div class="empty-actions">
                             <button onclick="loadVideos()" class="btn-empty primary">
                                 <i class="fas fa-redo"></i> إعادة المحاولة
@@ -1008,7 +1029,7 @@
                     </div>
                     <div class="video-meta">
                         <span class="views"><i class="fas fa-eye"></i> ${video.views || 0}</span>
-                        <span class="date"><i class="fas fa-calendar-alt"></i> ${new Date(video.uploadDate).toLocaleDateString('ar-SA')}</span>
+                        <span class="date"><i class="fas fa-calendar-alt"></i> ${video.uploadDate ? new Date(video.uploadDate).toLocaleDateString('ar-SA') : '-'}</span>
                         <span><i class="fas fa-weight-hanging"></i> ${video.fileSize || 'غير محدد'}</span>
                     </div>
                     <div class="video-actions">
@@ -1066,6 +1087,8 @@
         // تشغيل التطبيق
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎬 تم تحميل صفحة فيديوهات المادة');
+            console.log('🌐 API_URL:', API_URL);
             loadSubjectFromURL();
             loadVideos();
         });
