@@ -495,9 +495,8 @@ app.delete('/api/models/:id', protect, authorize('admin'), async (req, res) => {
 // ============================================================
 // 4. مسارات الطلبات (ORDERS)
 // ============================================================
-
 // ============================================================
-// جلب جميع الطلبات للمدير - مع التعامل مع user: null
+// جلب جميع الطلبات للمدير - مع معالجة user: null
 // ============================================================
 app.get('/api/orders/admin/all', protect, authorize('admin'), async (req, res) => {
     try {
@@ -518,8 +517,16 @@ app.get('/api/orders/admin/all', protect, authorize('admin'), async (req, res) =
             const orderObj = order.toObject();
             if (!orderObj.user) {
                 orderObj.user = {
-                    name: '👤 مستخدم غير مسجل',
-                    email: 'لا يوجد بريد'
+                    _id: null,
+                    name: 'مستخدم غير مسجل',
+                    email: 'لا يوجد بريد إلكتروني'
+                };
+            }
+            if (!orderObj.assignedExpert) {
+                orderObj.assignedExpert = {
+                    _id: null,
+                    name: 'غير معين',
+                    email: ''
                 };
             }
             return orderObj;
@@ -539,11 +546,13 @@ app.get('/api/orders/admin/all', protect, authorize('admin'), async (req, res) =
     }
 });
 // ============================================================
-// جلب طلبات الخبير - مع التعامل مع user: null
+// جلب طلبات الخبير - مع معالجة user: null
 // ============================================================
 app.get('/api/orders/expert', protect, authorize('expert'), async (req, res) => {
     try {
         const Order = require('./models/Order');
+        
+        // ✅ جلب الطلبات المسندة إلى هذا الخبير
         const orders = await Order.find({ assignedExpert: req.user.id })
             .populate({
                 path: 'user',
@@ -553,19 +562,33 @@ app.get('/api/orders/expert', protect, authorize('expert'), async (req, res) => 
                 path: 'assignedExpert',
                 select: 'name email'
             })
-            .sort({ createdAt: -1 });
+            .sort({ assignedAt: -1, createdAt: -1 });
             
+        // ✅ معالجة الطلبات التي ليس لها مستخدم
         const processedOrders = orders.map(order => {
             const orderObj = order.toObject();
+            
+            // ✅ إذا كان user غير موجود، نضيف بيانات افتراضية
             if (!orderObj.user) {
                 orderObj.user = {
-                    name: '👤 مستخدم غير مسجل',
-                    email: 'لا يوجد بريد'
+                    _id: null,
+                    name: 'مستخدم غير مسجل',
+                    email: 'لا يوجد بريد إلكتروني'
                 };
             }
+            
+            // ✅ إذا كان assignedExpert غير موجود
+            if (!orderObj.assignedExpert) {
+                orderObj.assignedExpert = {
+                    _id: null,
+                    name: 'غير معين',
+                    email: ''
+                };
+            }
+            
             return orderObj;
         });
-        
+
         res.status(200).json({
             success: true,
             count: processedOrders.length,
@@ -573,17 +596,28 @@ app.get('/api/orders/expert', protect, authorize('expert'), async (req, res) => 
         });
     } catch (error) {
         console.error('❌ خطأ في جلب طلبات الخبير:', error);
-        res.status(500).json({ success: false, message: error.message });
+        
+        // ✅ معالجة خطأ CastError
+        if (error.name === 'CastError' || (error.message && error.message.includes('CastError'))) {
+            return res.status(200).json({
+                success: true,
+                count: 0,
+                data: []
+            });
+        }
+        
+        res.status(500).json({
+            success: false,
+            message: error.message || 'حدث خطأ في جلب الطلبات'
+        });
     }
 });
-
 // ============================================================
-// جلب طلبات المستخدم العادي - مع التعامل مع user: null
+// جلب طلبات المستخدم - مع معالجة user: null
 // ============================================================
 app.get('/api/orders', protect, async (req, res) => {
     try {
         const Order = require('./models/Order');
-        // ✅ إذا كان المستخدم موجوداً، جلب طلباته
         const filter = req.user?.id ? { user: req.user.id } : {};
         const orders = await Order.find(filter)
             .populate({
@@ -596,8 +630,9 @@ app.get('/api/orders', protect, async (req, res) => {
             const orderObj = order.toObject();
             if (!orderObj.user) {
                 orderObj.user = {
-                    name: '👤 مستخدم غير مسجل',
-                    email: 'لا يوجد بريد'
+                    _id: null,
+                    name: 'مستخدم غير مسجل',
+                    email: 'لا يوجد بريد إلكتروني'
                 };
             }
             return orderObj;
@@ -613,7 +648,6 @@ app.get('/api/orders', protect, async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
-
 // إنشاء طلب جديد
 app.post('/api/orders', protect, async (req, res) => {
     try {

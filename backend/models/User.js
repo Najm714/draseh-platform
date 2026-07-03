@@ -20,7 +20,7 @@ const UserSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['admin', 'expert', 'user', 'client'],  // ✅ أضف 'user' هنا
+        enum: ['admin', 'expert', 'user'],
         default: 'user'
     },
     isActive: {
@@ -33,10 +33,6 @@ const UserSchema = new mongoose.Schema({
     bio: {
         type: String,
         default: ''
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
     }
 }, {
     timestamps: true

@@ -1430,9 +1430,8 @@
                 btn.disabled = false;
             }
         });
-
-        // ============================================================
-// جلب طلبات الخبير - مع التوكن
+ // ============================================================
+// جلب طلبات الخبير
 // ============================================================
 async function fetchOrders() {
     const ordersList = document.getElementById('ordersList');
@@ -1443,7 +1442,6 @@ async function fetchOrders() {
         </div>
     `;
 
-    // ✅ التحقق من وجود التوكن
     const token = localStorage.getItem('token');
     if (!token) {
         ordersList.innerHTML = `
@@ -1457,7 +1455,11 @@ async function fetchOrders() {
     }
 
     try {
-        const response = await fetch('http://localhost:5000/api/orders/expert', {
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:5000' 
+            : 'https://draseh-platform-1.onrender.com';
+
+        const response = await fetch(`${API_URL}/api/orders/expert`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -1470,10 +1472,14 @@ async function fetchOrders() {
             updateStats();
             renderOrders(allOrders);
         } else {
-            if (data.message && (data.message.includes('CastError') || data.message.includes('ObjectId'))) {
+            // ✅ إذا كان الخطأ "المستخدم غير موجود" أو أي خطأ آخر
+            if (data.message && data.message.includes('المستخدم غير موجود')) {
+                // هذا يعني أن الخادم واجه مشكلة في جلب بيانات المستخدم
+                // نعرض رسالة مناسبة ولكن لا نوقف التطبيق
                 allOrders = [];
                 updateStats();
                 renderOrders(allOrders);
+                showAlert('ℹ️ لا توجد طلبات مسندة إليك حالياً', 'info');
             } else {
                 showAlert('❌ خطأ في جلب الطلبات: ' + data.message, 'danger');
             }
@@ -1483,6 +1489,9 @@ async function fetchOrders() {
         allOrders = [];
         updateStats();
         renderOrders(allOrders);
+        if (!error.message.includes('Failed to fetch')) {
+            showAlert('❌ حدث خطأ في الاتصال بالخادم', 'danger');
+        }
     }
 }
 

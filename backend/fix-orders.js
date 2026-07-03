@@ -12,21 +12,39 @@ mongoose.connect(MONGO_URI)
 
 const OrderSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    // ... باقي الحقول
+    assignedExpert: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    title: String,
+    status: String
 }, { collection: 'orders' });
 
 const Order = mongoose.model('Order', OrderSchema);
 
 async function fixOrders() {
     try {
-        // ✅ عرض عدد الطلبات التي ليس لها مستخدم
+        // ✅ 1. عرض جميع الطلبات
+        const allOrders = await Order.find({});
+        console.log(`📊 إجمالي الطلبات: ${allOrders.length}`);
+        
+        // ✅ 2. عرض الطلبات التي ليس لها مستخدم
         const nullUserOrders = await Order.find({ user: null });
-        console.log(`📊 عدد الطلبات بدون مستخدم: ${nullUserOrders.length}`);
+        console.log(`📊 الطلبات بدون مستخدم: ${nullUserOrders.length}`);
         
-        // ✅ يمكنك تحديثها أو تركها كما هي
-        // لا نحتاج إلى حذفها، فقط نتعامل معها في الكود
+        // ✅ 3. عرض الطلبات المسندة للخبراء
+        const expertOrders = await Order.find({ assignedExpert: { $ne: null } });
+        console.log(`📊 الطلبات المسندة للخبراء: ${expertOrders.length}`);
         
-        console.log('✅ تم الانتهاء');
+        // ✅ 4. عرض عينة من الطلبات بدون مستخدم
+        if (nullUserOrders.length > 0) {
+            console.log('\n📋 عينة من الطلبات بدون مستخدم:');
+            nullUserOrders.slice(0, 5).forEach(order => {
+                console.log(`   - "${order.title}" (ID: ${order._id}, الحالة: ${order.status})`);
+            });
+        }
+        
+        // ✅ 5. لا نقوم بحذف أي شيء، فقط نعرض المعلومات
+        console.log('\n✅ تم الانتهاء - الكود الآن يتعامل مع user: null تلقائياً');
+        console.log('💡 يمكنك ترك الطلبات كما هي، سيتم عرضها مع اسم "مستخدم غير مسجل"');
+        
         process.exit(0);
     } catch (error) {
         console.error('❌ خطأ:', error);
