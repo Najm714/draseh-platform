@@ -712,11 +712,11 @@ app.delete('/api/orders/:id', protect, async (req, res) => {
     }
 });
 
-// رفع ملفات للطلب
+// ============================================================
+// رفع ملفات للطلب - تخزين المسار النسبي
+// ============================================================
 app.post('/api/orders/:id/upload', protect, upload.array('files', 5), async (req, res) => {
     try {
-        const Order = require('./models/Order');
-        
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({
                 success: false,
@@ -743,6 +743,7 @@ app.post('/api/orders/:id/upload', protect, upload.array('files', 5), async (req
             });
         }
 
+        // ✅ تخزين المسار النسبي فقط
         const fileData = req.files.map(file => ({
             filename: file.originalname || file.filename,
             path: `uploads/${file.filename}`,
@@ -760,10 +761,12 @@ app.post('/api/orders/:id/upload', protect, upload.array('files', 5), async (req
         });
     } catch (error) {
         console.error('❌ خطأ في رفع الملفات:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 });
-
 // جلب ملفات الطلب
 app.get('/api/orders/:id/files', protect, async (req, res) => {
     try {
@@ -799,7 +802,9 @@ app.get('/api/orders/:id/files', protect, async (req, res) => {
     }
 });
 
-// تحميل ملف معين
+// ============================================================
+// تحميل ملف معين - النسخة المصححة
+// ============================================================
 app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
     try {
         const Order = require('./models/Order');
@@ -833,23 +838,43 @@ app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
         }
 
         const file = order.files[fileIndex];
-        const filePath = path.join(__dirname, file.path);
-
-        if (!fs.existsSync(filePath)) {
-            // محاولة البحث عن الملف باسمه فقط
-            const fileName = file.filename || file.path.split('/').pop();
-            const altPath = path.join(__dirname, 'uploads', fileName);
-            if (fs.existsSync(altPath)) {
-                filePath = altPath;
-            } else {
-                return res.status(404).json({
-                    success: false,
-                    message: 'الملف غير موجود على الخادم'
-                });
+        
+        // ✅ بناء المسار الصحيح
+        let filePath;
+        let fileName = file.filename;
+        
+        // استخراج اسم الملف من المسار
+        if (file.path) {
+            const parts = file.path.split('/');
+            fileName = parts[parts.length - 1];
+        }
+        
+        // ✅ البحث عن الملف في مجلد uploads
+        const possiblePaths = [
+            path.join(__dirname, 'uploads', fileName),
+            path.join(__dirname, file.path),
+            path.join(__dirname, '../uploads', fileName)
+        ];
+        
+        let foundPath = null;
+        for (const p of possiblePaths) {
+            if (fs.existsSync(p)) {
+                foundPath = p;
+                break;
             }
         }
+        
+        if (!foundPath) {
+            console.log('❌ الملف غير موجود:', possiblePaths);
+            return res.status(404).json({
+                success: false,
+                message: 'الملف غير موجود على الخادم',
+                searchedPaths: possiblePaths
+            });
+        }
 
-        res.download(filePath, file.filename);
+        console.log('📁 تم العثور على الملف:', foundPath);
+        res.download(foundPath, file.filename || fileName);
     } catch (error) {
         console.error('❌ خطأ في تحميل الملف:', error);
         res.status(500).json({

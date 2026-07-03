@@ -1865,82 +1865,51 @@
                 </tr>
             `).join('');
         }
-
-        // ============================================================
-        // تحميل ملف مرفق - ✅ استخدام API_URL
-        // ============================================================
-        async function downloadFile(orderId, fileIndex) {
-            try {
-                const token = localStorage.getItem('token');
-                console.log('📥 تحميل ملف:', orderId, fileIndex);
-                
-                const response = await fetch(`${API_URL}/api/orders/${orderId}/files/${fileIndex}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || 'فشل تحميل الملف');
-                }
-
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                
-                const contentDisposition = response.headers.get('content-disposition');
-                let filename = 'ملف';
-                if (contentDisposition) {
-                    const match = contentDisposition.match(/filename="(.+)"/);
-                    if (match) filename = match[1];
-                }
-                
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-                
-                showAlert('✅ تم تحميل الملف بنجاح', 'success');
-            } catch (error) {
-                console.error('❌ خطأ في تحميل الملف:', error);
-                showAlert('❌ ' + (error.message || 'حدث خطأ في تحميل الملف'), 'danger');
+// ============================================================
+// تحميل ملف مرفق - النسخة المصححة
+// ============================================================
+async function downloadFile(orderId, fileIndex) {
+    try {
+        const token = localStorage.getItem('token');
+        console.log('📥 تحميل ملف:', orderId, fileIndex);
+        
+        const response = await fetch(`http://localhost:5000/api/orders/${orderId}/files/${fileIndex}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
             }
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'فشل تحميل الملف');
         }
 
-        // ============================================================
-        // تحديث حالة الطلب - ✅ استخدام API_URL
-        // ============================================================
-        async function updateOrderStatus(orderId, newStatus) {
-            const statusText = getStatusText(newStatus);
-            if (!confirm(`هل أنت متأكد من تغيير حالة الطلب إلى "${statusText}"؟`)) return;
-
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ status: newStatus })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showAlert(`✅ تم تغيير حالة الطلب إلى "${statusText}"`, 'success');
-                    fetchAllOrders();
-                } else {
-                    showAlert('❌ خطأ: ' + data.message, 'danger');
-                }
-            } catch (error) {
-                console.error('❌ خطأ:', error);
-                showAlert('❌ حدث خطأ في الاتصال بالخادم', 'danger');
-            }
+        // تحويل الاستجابة إلى blob
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        // استخراج اسم الملف من رأس الاستجابة
+        const contentDisposition = response.headers.get('content-disposition');
+        let filename = 'ملف';
+        if (contentDisposition) {
+            const match = contentDisposition.match(/filename="(.+)"/);
+            if (match) filename = match[1];
         }
+        
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        showAlert('✅ تم تحميل الملف بنجاح', 'success');
+    } catch (error) {
+        console.error('❌ خطأ في تحميل الملف:', error);
+        showAlert('❌ ' + (error.message || 'حدث خطأ في تحميل الملف'), 'danger');
+    }
+}
 
         // ============================================================
         // حذف طلب - ✅ استخدام API_URL
