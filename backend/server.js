@@ -103,24 +103,17 @@ app.get('/api/health', (req, res) => {
         timestamp: new Date().toISOString()
     });
 });
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/orders', require('./routes/orderRoutes'));
-app.use('/api/videos', require('./routes/videoRoutes'));
-app.use('/api/models', require('./routes/modelRoutes'));
-
 
 // ============================================================
 // 1. مسارات المصادقة (AUTH)
 // ============================================================
-// ============================================================
+
 // تسجيل مستخدم جديد
-// ============================================================
 app.post('/api/auth/register', async (req, res) => {
     try {
         const bcrypt = require('bcryptjs');
         const { name, email, password, role } = req.body;
 
-        // التحقق من وجود المستخدم
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({
@@ -129,20 +122,14 @@ app.post('/api/auth/register', async (req, res) => {
             });
         }
 
-        // تشفير كلمة المرور
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-
-        // ✅ التأكد من أن الدور هو 'user' دائماً للتسجيل العام
-        // إذا تم إرسال role غير مسموح به، نضع القيمة الافتراضية 'user'
-        const allowedRoles = ['user'];
-        const userRole = allowedRoles.includes(role) ? role : 'user';
 
         const user = new User({
             name,
             email,
             password: hashedPassword,
-            role: userRole,  // ✅ user فقط
+            role: role || 'user',
             isActive: true
         });
 
@@ -250,9 +237,8 @@ app.get('/api/auth/me', protect, async (req, res) => {
 // ============================================================
 // 2. مسارات الفيديوهات (VIDEOS)
 // ============================================================
-// ============================================================
-// رفع فيديو جديد - ✅ استخدم uploadVideo وليس upload
-// ============================================================
+
+// رفع فيديو جديد
 app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => {
     try {
         console.log('📁 استلام فيديو:', req.file);
@@ -274,7 +260,6 @@ app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => 
             });
         }
 
-        // ✅ إنشاء الفيديو مع fileName من req.file
         const video = new Video({
             title: title,
             subjectId: parseInt(subjectId),
@@ -282,7 +267,7 @@ app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => 
             specialtyName: specialtyName || '',
             universityName: universityName || '',
             description: description || '',
-            fileName: req.file.filename,  // ✅ هذا هو المطلوب
+            fileName: req.file.filename,
             filePath: req.file.path,
             fileSize: (req.file.size / (1024 * 1024)).toFixed(2) + ' MB',
             fileType: req.file.mimetype,
@@ -712,11 +697,11 @@ app.delete('/api/orders/:id', protect, async (req, res) => {
     }
 });
 
-// ============================================================
-// رفع ملفات للطلب - تخزين المسار النسبي
-// ============================================================
+// رفع ملفات للطلب
 app.post('/api/orders/:id/upload', protect, upload.array('files', 5), async (req, res) => {
     try {
+        const Order = require('./models/Order');
+        
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({
                 success: false,
@@ -743,7 +728,6 @@ app.post('/api/orders/:id/upload', protect, upload.array('files', 5), async (req
             });
         }
 
-        // ✅ تخزين المسار النسبي فقط
         const fileData = req.files.map(file => ({
             filename: file.originalname || file.filename,
             path: `uploads/${file.filename}`,
@@ -761,12 +745,10 @@ app.post('/api/orders/:id/upload', protect, upload.array('files', 5), async (req
         });
     } catch (error) {
         console.error('❌ خطأ في رفع الملفات:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+        res.status(500).json({ success: false, message: error.message });
     }
 });
+
 // جلب ملفات الطلب
 app.get('/api/orders/:id/files', protect, async (req, res) => {
     try {
@@ -802,9 +784,7 @@ app.get('/api/orders/:id/files', protect, async (req, res) => {
     }
 });
 
-// ============================================================
-// تحميل ملف معين - النسخة المصححة
-// ============================================================
+// تحميل ملف معين
 app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
     try {
         const Order = require('./models/Order');
@@ -843,13 +823,11 @@ app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
         let filePath;
         let fileName = file.filename;
         
-        // استخراج اسم الملف من المسار
         if (file.path) {
             const parts = file.path.split('/');
             fileName = parts[parts.length - 1];
         }
         
-        // ✅ البحث عن الملف في مجلد uploads
         const possiblePaths = [
             path.join(__dirname, 'uploads', fileName),
             path.join(__dirname, file.path),
@@ -865,15 +843,12 @@ app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
         }
         
         if (!foundPath) {
-            console.log('❌ الملف غير موجود:', possiblePaths);
             return res.status(404).json({
                 success: false,
-                message: 'الملف غير موجود على الخادم',
-                searchedPaths: possiblePaths
+                message: 'الملف غير موجود على الخادم'
             });
         }
 
-        console.log('📁 تم العثور على الملف:', foundPath);
         res.download(foundPath, file.filename || fileName);
     } catch (error) {
         console.error('❌ خطأ في تحميل الملف:', error);
@@ -1057,28 +1032,6 @@ app.delete('/api/users/:id', protect, authorize('admin'), async (req, res) => {
     } catch (error) {
         console.error('❌ خطأ في حذف المستخدم:', error);
         res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-// ============================================================
-// مسار الصفحة الرئيسية - لخدمة ملف index.html
-// ============================================================
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/index.html'));
-});
-
-// ============================================================
-// مسار لجميع ملفات Frontend
-// ============================================================
-app.get('*.html', (req, res) => {
-    const filePath = path.join(__dirname, '../frontend', req.path);
-    if (fs.existsSync(filePath)) {
-        res.sendFile(filePath);
-    } else {
-        res.status(404).json({
-            success: false,
-            message: 'الصفحة غير موجودة'
-        });
     }
 });
 
