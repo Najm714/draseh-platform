@@ -502,9 +502,7 @@
         // ============================================================
         // تعريف الرابط الأساسي للـ API حسب البيئة
         // ============================================================
-        const API_URL = window.location.hostname === 'localhost' 
-            ? 'http://localhost:5000' 
-            : 'https://draseh-platform-1.onrender.com';
+        const API_URL = 'https://draseh-platform-1.onrender.com';
 
         console.log('🌐 API_URL:', API_URL);
         console.log('🔑 التوكن:', localStorage.getItem('token'));
@@ -984,8 +982,8 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
         return;
     }
 
-    console.log('🔑 التوكن:', token);
-    console.log('📡 API_URL:', API_URL);
+    console.log('📡 الرابط:', `${API_URL}/api/videos/upload`);
+    console.log('🔑 التوكن:', token.substring(0, 20) + '...');
 
     const btn = document.getElementById('submitBtn');
     const originalText = btn.innerHTML;
@@ -1003,27 +1001,19 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
     formData.append('video', file);
 
     try {
-        // ✅ إضافة مهلة للطلب (timeout)
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 دقائق مهلة
-
-        console.log('📡 رفع فيديو إلى:', `${API_URL}/api/videos/upload`);
-
         const response = await fetch(`${API_URL}/api/videos/upload`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`
             },
-            body: formData,
-            signal: controller.signal
+            body: formData
         });
-
-        clearTimeout(timeoutId);
 
         // ✅ التحقق من حالة الاستجابة
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `خطأ في الخادم: ${response.status}`);
+            const errorText = await response.text();
+            console.error('❌ خطأ في الخادم:', response.status, errorText);
+            throw new Error(`خطأ في الخادم: ${response.status}`);
         }
 
         const data = await response.json();
@@ -1035,29 +1025,19 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
             document.getElementById('fileInfo').classList.remove('show');
             document.getElementById('specialtySelect').disabled = true;
             document.getElementById('subjectSelect').disabled = true;
-            document.getElementById('uploadArea').querySelector('h4').textContent = 'اسحب ملف الفيديو هنا أو انقر للاختيار';
-            document.getElementById('uploadArea').querySelector('p').textContent = 'يدعم الصيغ: MP4, WebM, OGG, AVI, MKV (حد أقصى 500 ميجابايت)';
             loadVideos();
         } else {
             alert('❌ خطأ: ' + (data.message || 'فشل رفع الفيديو'));
         }
     } catch (error) {
         console.error('❌ خطأ في رفع الفيديو:', error);
-        if (error.name === 'AbortError') {
-            alert('❌ انتهت مهلة الرفع. الملف كبير جداً أو اتصال الإنترنت بطيء.');
-        } else if (error.message.includes('401')) {
-            alert('❌ انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.');
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = 'login.html';
-        } else {
-            alert('❌ حدث خطأ في الاتصال بالخادم: ' + error.message);
-        }
+        alert('❌ حدث خطأ: ' + error.message);
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
     }
 });
+
         // ============================================================
         // جلب الفيديوهات
         // ============================================================
