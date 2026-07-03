@@ -1777,94 +1777,94 @@
             document.getElementById('completedOrders').textContent = completed;
             document.getElementById('cancelledOrders').textContent = cancelled;
         }
+// ============================================================
+// عرض الطلبات في الجدول - مع التعامل مع user: null
+// ============================================================
+function renderOrders(orders) {
+    const tbody = document.getElementById('ordersTableBody');
 
-        // ============================================================
-        // عرض الطلبات في الجدول - مع التعامل مع user: null
-        // ============================================================
-        function renderOrders(orders) {
-            const tbody = document.getElementById('ordersTableBody');
+    if (!orders || orders.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">
+                    <i class="fas fa-inbox" style="font-size:2.5rem; display:block; margin-bottom:10px; opacity:0.3;"></i>
+                    <h4 style="color:var(--text-color);">لا توجد طلبات</h4>
+                    <p style="font-size:0.9rem;">جميع الطلبات ستظهر هنا</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
 
-            if (!orders || orders.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">
-                            <i class="fas fa-inbox" style="font-size:2.5rem; display:block; margin-bottom:10px; opacity:0.3;"></i>
-                            <h4 style="color:var(--text-color);">لا توجد طلبات</h4>
-                            <p style="font-size:0.9rem;">جميع الطلبات ستظهر هنا</p>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            tbody.innerHTML = orders.map((order, index) => `
-                <tr data-aos="fade-up" data-aos-delay="${Math.min(index * 20, 300)}">
-                    <td>${index + 1}</td>
-                    <td>
-                        <strong>${order.user?.name || '👤 مستخدم غير مسجل'}</strong>
-                        <br>
-                        <small style="color:var(--text-muted); font-size:0.75rem;">${order.user?.email || 'لا يوجد بريد'}</small>
-                        ${!order.user ? '<span style="color:#EF4444; font-size:0.7rem;">⚠️ بدون مستخدم</span>' : ''}
-                    </td>
-                    <td>
-                        <span style="background:rgba(124,58,237,0.1); color:var(--primary); padding:2px 12px; border-radius:12px; font-size:0.8rem; font-weight:600;">
-                            ${order.serviceType || 'خدمة'}
-                        </span>
-                    </td>
-                    <td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${order.title || ''}">
-                        ${order.title || 'بدون عنوان'}
-                    </td>
-                    <td style="font-weight:600; color:var(--primary);">${order.budget || 0} ريال</td>
-                    <td>
-                        <span class="status status-${order.status}">${getStatusText(order.status)}</span>
-                    </td>
-                    <td style="font-size:0.85rem; color:var(--text-muted);">
-                        <i class="fas fa-calendar-alt" style="color:var(--primary);"></i>
-                        ${new Date(order.createdAt).toLocaleDateString('ar-SA')}
-                    </td>
-                    <td>
-                        <div class="actions">
-                            ${order.status === 'pending' ? `
-                                <button class="btn-approve" onclick="updateOrderStatus('${order._id}', 'in-progress')">
-                                    <i class="fas fa-check"></i> تأكيد
-                                </button>
-                                <button class="btn-reject" onclick="updateOrderStatus('${order._id}', 'cancelled')">
-                                    <i class="fas fa-times"></i> رفض
-                                </button>
-                            ` : ''}
-                            ${order.status === 'in-progress' ? `
-                                <button class="btn-complete" onclick="updateOrderStatus('${order._id}', 'completed')">
-                                    <i class="fas fa-check-double"></i> إكمال
-                                </button>
-                            ` : ''}
-                            <button class="btn-assign" onclick="openAssignModal('${order._id}')">
-                                <i class="fas fa-user-tie"></i> تعيين
-                            </button>
-                            <button class="btn-delete" onclick="deleteOrder('${order._id}')">
-                                <i class="fas fa-trash"></i> حذف
-                            </button>
+    tbody.innerHTML = orders.map((order, index) => `
+        <tr data-aos="fade-up" data-aos-delay="${Math.min(index * 20, 300)}">
+            <td>${index + 1}</td>
+            <td>
+                <strong>${order.user?.name || '👤 مستخدم غير مسجل'}</strong>
+                <br>
+                <small style="color:var(--text-muted); font-size:0.75rem;">${order.user?.email || 'لا يوجد بريد'}</small>
+                ${!order.user ? '<span style="color:#EF4444; font-size:0.7rem;">⚠️ بدون مستخدم</span>' : ''}
+            </td>
+            <td>
+                <span style="background:rgba(124,58,237,0.1); color:var(--primary); padding:2px 12px; border-radius:12px; font-size:0.8rem; font-weight:600;">
+                    ${order.serviceType || 'خدمة'}
+                </span>
+            </td>
+            <td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${order.title || ''}">
+                ${order.title || 'بدون عنوان'}
+            </td>
+            <td style="font-weight:600; color:var(--primary);">${order.budget || 0} ريال</td>
+            <td>
+                <span class="status status-${order.status}">${getStatusText(order.status)}</span>
+            </td>
+            <td style="font-size:0.85rem; color:var(--text-muted);">
+                <i class="fas fa-calendar-alt" style="color:var(--primary);"></i>
+                ${new Date(order.createdAt).toLocaleDateString('ar-SA')}
+            </td>
+            <td>
+                <div class="actions">
+                    ${order.status === 'pending' ? `
+                        <button class="btn-approve" onclick="updateOrderStatus('${order._id}', 'in-progress')">
+                            <i class="fas fa-check"></i> تأكيد
+                        </button>
+                        <button class="btn-reject" onclick="updateOrderStatus('${order._id}', 'cancelled')">
+                            <i class="fas fa-times"></i> رفض
+                        </button>
+                    ` : ''}
+                    ${order.status === 'in-progress' ? `
+                        <button class="btn-complete" onclick="updateOrderStatus('${order._id}', 'completed')">
+                            <i class="fas fa-check-double"></i> إكمال
+                        </button>
+                    ` : ''}
+                    <button class="btn-assign" onclick="openAssignModal('${order._id}')">
+                        <i class="fas fa-user-tie"></i> تعيين
+                    </button>
+                    <button class="btn-delete" onclick="deleteOrder('${order._id}')">
+                        <i class="fas fa-trash"></i> حذف
+                    </button>
+                </div>
+                ${order.files && order.files.length > 0 ? `
+                    <div class="files-container">
+                        <div class="files-header">
+                            <i class="fas fa-paperclip"></i>
+                            <strong>الملفات (${order.files.length}):</strong>
                         </div>
-                        ${order.files && order.files.length > 0 ? `
-                            <div class="files-container">
-                                <div class="files-header">
-                                    <i class="fas fa-paperclip"></i>
-                                    <strong>الملفات (${order.files.length}):</strong>
-                                </div>
-                                <div class="files-list">
-                                    ${order.files.map((file, idx) => `
-                                        <span class="file-item" onclick="downloadFile('${order._id}', ${idx})" title="تحميل الملف">
-                                            <i class="fas fa-file"></i>
-                                            ${file.filename || 'ملف'}
-                                            <i class="fas fa-download download-icon"></i>
-                                        </span>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        ` : ''}
-                    </td>
-                </tr>
-            `).join('');
-        }
+                        <div class="files-list">
+                            ${order.files.map((file, idx) => `
+                                <span class="file-item" onclick="downloadFile('${order._id}', ${idx})" title="تحميل الملف">
+                                    <i class="fas fa-file"></i>
+                                    ${file.filename || 'ملف'}
+                                    <i class="fas fa-download download-icon"></i>
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            </td>
+        </tr>
+    `).join('');
+}
+
 // ============================================================
 // تحميل ملف مرفق - النسخة المصححة
 // ============================================================

@@ -496,36 +496,80 @@ app.delete('/api/models/:id', protect, authorize('admin'), async (req, res) => {
 // 4. مسارات الطلبات (ORDERS)
 // ============================================================
 
-// جلب جميع الطلبات للمدير
+// ============================================================
+// جلب جميع الطلبات للمدير - مع التعامل مع user: null
+// ============================================================
 app.get('/api/orders/admin/all', protect, authorize('admin'), async (req, res) => {
     try {
         const Order = require('./models/Order');
         const orders = await Order.find()
-            .populate('user', 'name email')
+            .populate({
+                path: 'user',
+                select: 'name email'
+            })
+            .populate({
+                path: 'assignedExpert',
+                select: 'name email'
+            })
             .sort({ createdAt: -1 });
+        
+        // ✅ معالجة الطلبات التي ليس لها مستخدم
+        const processedOrders = orders.map(order => {
+            const orderObj = order.toObject();
+            if (!orderObj.user) {
+                orderObj.user = {
+                    name: '👤 مستخدم غير مسجل',
+                    email: 'لا يوجد بريد'
+                };
+            }
+            return orderObj;
+        });
+        
         res.status(200).json({
             success: true,
-            count: orders.length,
-            data: orders
+            count: processedOrders.length,
+            data: processedOrders
         });
     } catch (error) {
         console.error('❌ خطأ في جلب جميع الطلبات:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 });
-
-// جلب طلبات الخبير
+// ============================================================
+// جلب طلبات الخبير - مع التعامل مع user: null
+// ============================================================
 app.get('/api/orders/expert', protect, authorize('expert'), async (req, res) => {
     try {
         const Order = require('./models/Order');
         const orders = await Order.find({ assignedExpert: req.user.id })
-            .populate('user', 'name email')
+            .populate({
+                path: 'user',
+                select: 'name email'
+            })
+            .populate({
+                path: 'assignedExpert',
+                select: 'name email'
+            })
             .sort({ createdAt: -1 });
             
+        const processedOrders = orders.map(order => {
+            const orderObj = order.toObject();
+            if (!orderObj.user) {
+                orderObj.user = {
+                    name: '👤 مستخدم غير مسجل',
+                    email: 'لا يوجد بريد'
+                };
+            }
+            return orderObj;
+        });
+        
         res.status(200).json({
             success: true,
-            count: orders.length,
-            data: orders
+            count: processedOrders.length,
+            data: processedOrders
         });
     } catch (error) {
         console.error('❌ خطأ في جلب طلبات الخبير:', error);
@@ -533,16 +577,36 @@ app.get('/api/orders/expert', protect, authorize('expert'), async (req, res) => 
     }
 });
 
-// جلب طلبات المستخدم العادي
+// ============================================================
+// جلب طلبات المستخدم العادي - مع التعامل مع user: null
+// ============================================================
 app.get('/api/orders', protect, async (req, res) => {
     try {
         const Order = require('./models/Order');
-        const orders = await Order.find({ user: req.user.id })
+        // ✅ إذا كان المستخدم موجوداً، جلب طلباته
+        const filter = req.user?.id ? { user: req.user.id } : {};
+        const orders = await Order.find(filter)
+            .populate({
+                path: 'user',
+                select: 'name email'
+            })
             .sort({ createdAt: -1 });
+            
+        const processedOrders = orders.map(order => {
+            const orderObj = order.toObject();
+            if (!orderObj.user) {
+                orderObj.user = {
+                    name: '👤 مستخدم غير مسجل',
+                    email: 'لا يوجد بريد'
+                };
+            }
+            return orderObj;
+        });
+        
         res.status(200).json({
             success: true,
-            count: orders.length,
-            data: orders
+            count: processedOrders.length,
+            data: processedOrders
         });
     } catch (error) {
         console.error('❌ خطأ في جلب طلبات المستخدم:', error);
