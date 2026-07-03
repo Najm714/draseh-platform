@@ -12,6 +12,21 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ============================================================
+// استيراد النماذج (Models)
+// ============================================================
+const Video = require('./models/Video');
+const Model = require('./models/Model');
+const Order = require('./models/Order');
+const User = require('./models/User');
+
+// ============================================================
+// استيراد الميدل وير
+// ============================================================
+const uploadVideo = require('./middleware/uploadVideo');
+const upload = require('./middleware/upload');
+const { protect, authorize } = require('./middleware/auth');
+
+// ============================================================
 // Middleware
 // ============================================================
 app.use(cors());
@@ -47,26 +62,11 @@ app.use('/uploads/videos', express.static(path.join(__dirname, 'uploads', 'video
 // ============================================================
 // الاتصال بقاعدة البيانات
 // ============================================================
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/draseh_platform';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://alqadynjm088_db_user:miaiLDGxIe5Wk0WH@cluster0.ctsx5vv.mongodb.net/drasheh_platform?retryWrites=true&w=majority&appName=Cluster0';
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ تم الاتصال بقاعدة البيانات بنجاح'))
     .catch(err => console.error('❌ فشل الاتصال بقاعدة البيانات:', err.message));
-
-// ============================================================
-// استيراد النماذج (Models)
-// ============================================================
-const Video = require('./models/Video');
-const Model = require('./models/Model');
-const Order = require('./models/Order');
-const User = require('./models/User');
-
-// ============================================================
-// استيراد الميدل وير
-// ============================================================
-const uploadVideo = require('./middleware/uploadVideo');
-const upload = require('./middleware/upload');
-const { protect, authorize } = require('./middleware/auth');
 
 // ============================================================
 // المسار الرئيسي
@@ -103,24 +103,17 @@ app.get('/api/health', (req, res) => {
         timestamp: new Date().toISOString()
     });
 });
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/orders', require('./routes/orderRoutes'));
-app.use('/api/videos', require('./routes/videoRoutes'));
-app.use('/api/models', require('./routes/modelRoutes'));
-
 
 // ============================================================
 // 1. مسارات المصادقة (AUTH)
 // ============================================================
-// ============================================================
+
 // تسجيل مستخدم جديد
-// ============================================================
 app.post('/api/auth/register', async (req, res) => {
     try {
         const bcrypt = require('bcryptjs');
         const { name, email, password, role } = req.body;
 
-        // التحقق من وجود المستخدم
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({
@@ -129,20 +122,14 @@ app.post('/api/auth/register', async (req, res) => {
             });
         }
 
-        // تشفير كلمة المرور
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-
-        // ✅ التأكد من أن الدور هو 'user' دائماً للتسجيل العام
-        // إذا تم إرسال role غير مسموح به، نضع القيمة الافتراضية 'user'
-        const allowedRoles = ['user'];
-        const userRole = allowedRoles.includes(role) ? role : 'user';
 
         const user = new User({
             name,
             email,
             password: hashedPassword,
-            role: userRole,  // ✅ user فقط
+            role: role || 'user',
             isActive: true
         });
 
@@ -248,10 +235,10 @@ app.get('/api/auth/me', protect, async (req, res) => {
 });
 
 // ============================================================
-// 2. مسارات الفيديوهات (VIDEOS)
+// 2. مسارات الفيديوهات (VIDEOS) - ✅ النسخة النهائية
 // ============================================================
-// رفع فيديو جديد
-// ============================================================
+
+// رفع فيديو جديد - ✅ استخدام uploadVideo
 app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => {
     try {
         console.log('📁 استلام فيديو:', req.file);
@@ -273,7 +260,7 @@ app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => 
             });
         }
 
-        // ✅ إنشاء الفيديو
+        // ✅ إنشاء الفيديو مع fileName من req.file
         const video = new Video({
             title: title,
             subjectId: parseInt(subjectId),
@@ -381,7 +368,7 @@ app.put('/api/videos/:id/views', async (req, res) => {
     }
 });
 
-// حذف فيديو
+// حذف فيديو (للمدير)
 app.delete('/api/videos/:id', protect, authorize('admin'), async (req, res) => {
     try {
         const video = await Video.findById(req.params.id);
@@ -448,7 +435,7 @@ app.get('/api/models/:id', async (req, res) => {
     }
 });
 
-// رفع نموذج جديد
+// رفع نموذج جديد (للمدير)
 app.post('/api/models', protect, authorize('admin'), async (req, res) => {
     try {
         const { title, category, description, fileName, fileSize, fileType, fileData, mainService, subService } = req.body;
@@ -485,7 +472,7 @@ app.post('/api/models', protect, authorize('admin'), async (req, res) => {
     }
 });
 
-// حذف نموذج
+// حذف نموذج (للمدير)
 app.delete('/api/models/:id', protect, authorize('admin'), async (req, res) => {
     try {
         const model = await Model.findById(req.params.id);
@@ -513,7 +500,6 @@ app.delete('/api/models/:id', protect, authorize('admin'), async (req, res) => {
 // جلب جميع الطلبات للمدير
 app.get('/api/orders/admin/all', protect, authorize('admin'), async (req, res) => {
     try {
-        const Order = require('./models/Order');
         const orders = await Order.find()
             .populate('user', 'name email')
             .sort({ createdAt: -1 });
@@ -531,11 +517,9 @@ app.get('/api/orders/admin/all', protect, authorize('admin'), async (req, res) =
 // جلب طلبات الخبير
 app.get('/api/orders/expert', protect, authorize('expert'), async (req, res) => {
     try {
-        const Order = require('./models/Order');
         const orders = await Order.find({ assignedExpert: req.user.id })
             .populate('user', 'name email')
             .sort({ createdAt: -1 });
-            
         res.status(200).json({
             success: true,
             count: orders.length,
@@ -550,7 +534,6 @@ app.get('/api/orders/expert', protect, authorize('expert'), async (req, res) => 
 // جلب طلبات المستخدم العادي
 app.get('/api/orders', protect, async (req, res) => {
     try {
-        const Order = require('./models/Order');
         const orders = await Order.find({ user: req.user.id })
             .sort({ createdAt: -1 });
         res.status(200).json({
@@ -567,8 +550,6 @@ app.get('/api/orders', protect, async (req, res) => {
 // إنشاء طلب جديد
 app.post('/api/orders', protect, async (req, res) => {
     try {
-        const Order = require('./models/Order');
-        
         const orderData = {
             serviceType: req.body.serviceType || 'خدمة',
             title: req.body.title || 'طلب جديد',
@@ -595,7 +576,6 @@ app.post('/api/orders', protect, async (req, res) => {
 // جلب طلب محدد
 app.get('/api/orders/:id', protect, async (req, res) => {
     try {
-        const Order = require('./models/Order');
         const order = await Order.findById(req.params.id)
             .populate('user', 'name email')
             .populate('assignedExpert', 'name email');
@@ -632,7 +612,6 @@ app.get('/api/orders/:id', protect, async (req, res) => {
 // تحديث طلب
 app.put('/api/orders/:id', protect, async (req, res) => {
     try {
-        const Order = require('./models/Order');
         let order = await Order.findById(req.params.id);
 
         if (!order) {
@@ -678,7 +657,6 @@ app.put('/api/orders/:id', protect, async (req, res) => {
 // حذف طلب
 app.delete('/api/orders/:id', protect, async (req, res) => {
     try {
-        const Order = require('./models/Order');
         const order = await Order.findById(req.params.id);
 
         if (!order) {
@@ -714,8 +692,6 @@ app.delete('/api/orders/:id', protect, async (req, res) => {
 // رفع ملفات للطلب
 app.post('/api/orders/:id/upload', protect, upload.array('files', 5), async (req, res) => {
     try {
-        const Order = require('./models/Order');
-        
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({
                 success: false,
@@ -766,9 +742,7 @@ app.post('/api/orders/:id/upload', protect, upload.array('files', 5), async (req
 // جلب ملفات الطلب
 app.get('/api/orders/:id/files', protect, async (req, res) => {
     try {
-        const Order = require('./models/Order');
         const order = await Order.findById(req.params.id);
-        
         if (!order) {
             return res.status(404).json({
                 success: false,
@@ -801,9 +775,7 @@ app.get('/api/orders/:id/files', protect, async (req, res) => {
 // تحميل ملف معين
 app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
     try {
-        const Order = require('./models/Order');
         const order = await Order.findById(req.params.orderId);
-        
         if (!order) {
             return res.status(404).json({
                 success: false,
@@ -835,33 +807,22 @@ app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
         const filePath = path.join(__dirname, file.path);
 
         if (!fs.existsSync(filePath)) {
-            // محاولة البحث عن الملف باسمه فقط
-            const fileName = file.filename || file.path.split('/').pop();
-            const altPath = path.join(__dirname, 'uploads', fileName);
-            if (fs.existsSync(altPath)) {
-                filePath = altPath;
-            } else {
-                return res.status(404).json({
-                    success: false,
-                    message: 'الملف غير موجود على الخادم'
-                });
-            }
+            return res.status(404).json({
+                success: false,
+                message: 'الملف غير موجود على الخادم'
+            });
         }
 
         res.download(filePath, file.filename);
     } catch (error) {
         console.error('❌ خطأ في تحميل الملف:', error);
-        res.status(500).json({
-            success: false,
-            message: 'حدث خطأ في تحميل الملف'
-        });
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
-// تعيين خبير للطلب
+// تعيين خبير للطلب (للمدير)
 app.put('/api/orders/:id/assign-expert', protect, authorize('admin'), async (req, res) => {
     try {
-        const Order = require('./models/Order');
         const { expertId, notes } = req.body;
         
         if (!expertId) {
@@ -872,7 +833,6 @@ app.put('/api/orders/:id/assign-expert', protect, authorize('admin'), async (req
         }
 
         const expert = await User.findById(expertId);
-        
         if (!expert) {
             return res.status(404).json({
                 success: false,
@@ -929,7 +889,7 @@ app.put('/api/orders/:id/assign-expert', protect, authorize('admin'), async (req
 // 5. مسارات المستخدمين (USERS)
 // ============================================================
 
-// جلب جميع المستخدمين
+// جلب جميع المستخدمين (للمدير)
 app.get('/api/users', protect, authorize('admin'), async (req, res) => {
     try {
         const users = await User.find()
@@ -946,7 +906,7 @@ app.get('/api/users', protect, authorize('admin'), async (req, res) => {
     }
 });
 
-// جلب جميع الخبراء
+// جلب جميع الخبراء (للمدير)
 app.get('/api/users/experts', protect, authorize('admin'), async (req, res) => {
     try {
         const experts = await User.find({ role: 'expert' })
@@ -982,7 +942,7 @@ app.get('/api/users/:id', protect, async (req, res) => {
     }
 });
 
-// تحديث مستخدم
+// تحديث مستخدم (للمدير)
 app.put('/api/users/:id', protect, authorize('admin'), async (req, res) => {
     try {
         const { isActive, expertise, bio, role } = req.body;
@@ -1014,7 +974,7 @@ app.put('/api/users/:id', protect, authorize('admin'), async (req, res) => {
     }
 });
 
-// حذف مستخدم
+// حذف مستخدم (للمدير)
 app.delete('/api/users/:id', protect, authorize('admin'), async (req, res) => {
     try {
         const user = await User.findByIdAndDelete(req.params.id);
@@ -1031,28 +991,6 @@ app.delete('/api/users/:id', protect, authorize('admin'), async (req, res) => {
     } catch (error) {
         console.error('❌ خطأ في حذف المستخدم:', error);
         res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-// ============================================================
-// مسار الصفحة الرئيسية - لخدمة ملف index.html
-// ============================================================
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/index.html'));
-});
-
-// ============================================================
-// مسار لجميع ملفات Frontend
-// ============================================================
-app.get('*.html', (req, res) => {
-    const filePath = path.join(__dirname, '../frontend', req.path);
-    if (fs.existsSync(filePath)) {
-        res.sendFile(filePath);
-    } else {
-        res.status(404).json({
-            success: false,
-            message: 'الصفحة غير موجودة'
-        });
     }
 });
 

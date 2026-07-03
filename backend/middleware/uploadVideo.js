@@ -7,15 +7,15 @@ const fs = require('fs');
 const videosDir = path.join(__dirname, '../uploads/videos');
 if (!fs.existsSync(videosDir)) {
     fs.mkdirSync(videosDir, { recursive: true });
+    console.log('📁 تم إنشاء مجلد الفيديوهات');
 }
 
-// ✅ إعداد التخزين - هذا هو المكان الذي يتم فيه تعيين filename
+// إعداد التخزين
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, videosDir);
     },
     filename: function (req, file, cb) {
-        // ✅ هنا يتم إنشاء اسم الملف
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const ext = path.extname(file.originalname);
         cb(null, 'video-' + uniqueSuffix + ext);
@@ -32,7 +32,7 @@ const fileFilter = (req, file, cb) => {
 };
 
 // إنشاء الميدل وير
-const upload = multer({
+const uploadVideo = multer({
     storage: storage,
     limits: {
         fileSize: 500 * 1024 * 1024 // 500 ميجابايت
@@ -40,4 +40,4 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
-module.exports = upload;
+module.exports = uploadVideo;
