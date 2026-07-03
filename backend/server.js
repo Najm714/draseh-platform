@@ -883,7 +883,9 @@ app.get('/api/orders/:orderId/files', protect, async (req, res) => {
     }
 });
 
-// تحميل ملف معين
+// ============================================================
+// تحميل ملف معين - النسخة النهائية المحسنة
+// ============================================================
 app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
     try {
         const order = await Order.findById(req.params.orderId);
@@ -917,17 +919,15 @@ app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
 
         const file = order.files[fileIndex];
         
-        // البحث عن الملف في عدة مسارات
-        const possiblePaths = [];
-        
-        // 1. استخدام المسار المخزن
-        if (file.filePath) {
-            possiblePaths.push(file.filePath);
+        // 1. محاولة استخدام المسار المخزن مباشرة
+        if (file.filePath && fs.existsSync(file.filePath)) {
+            console.log(`✅ تحميل من المسار المخزن: ${file.filePath}`);
+            return res.download(file.filePath, file.filename);
         }
-        
+
         // 2. البحث في مجلد uploads
+        const possiblePaths = [];
         const uploadsDir = path.join(__dirname, 'uploads');
-        const ordersUploadsDir = path.join(__dirname, 'uploads', 'orders');
         
         // أسماء محتملة للملف
         const possibleNames = [
@@ -936,34 +936,26 @@ app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
             `${req.params.orderId}_${file.filename}`,
             `${req.params.orderId}_${file.fileId}`
         ];
-        
-        // البحث في مجلد uploads
+
+        // البحث في جميع مجلدات uploads
         if (fs.existsSync(uploadsDir)) {
-            const files = fs.readdirSync(uploadsDir);
-            for (const f of files) {
-                for (const name of possibleNames) {
-                    if (f.includes(name) || name.includes(f)) {
-                        possiblePaths.push(path.join(uploadsDir, f));
-                        break;
+            const searchDirs = [uploadsDir, path.join(uploadsDir, 'orders')];
+            for (const dir of searchDirs) {
+                if (fs.existsSync(dir)) {
+                    const files = fs.readdirSync(dir);
+                    for (const f of files) {
+                        for (const name of possibleNames) {
+                            if (name && (f.includes(name) || name.includes(f))) {
+                                possiblePaths.push(path.join(dir, f));
+                                break;
+                            }
+                        }
                     }
                 }
             }
         }
-        
-        // البحث في مجلد uploads/orders
-        if (fs.existsSync(ordersUploadsDir)) {
-            const files = fs.readdirSync(ordersUploadsDir);
-            for (const f of files) {
-                for (const name of possibleNames) {
-                    if (f.includes(name) || name.includes(f)) {
-                        possiblePaths.push(path.join(ordersUploadsDir, f));
-                        break;
-                    }
-                }
-            }
-        }
-        
-        // البحث عن مسار صحيح
+
+        // 3. البحث عن مسار صحيح
         let foundPath = null;
         for (const p of possiblePaths) {
             if (fs.existsSync(p)) {
@@ -971,25 +963,36 @@ app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
                 break;
             }
         }
-        
+
         if (!foundPath) {
+            console.error(`❌ الملف غير موجود:`, {
+                orderId: req.params.orderId,
+                filename: file.filename,
+                fileId: file.fileId,
+                searchedPaths: possiblePaths
+            });
             return res.status(404).json({
                 success: false,
                 message: 'الملف غير موجود على الخادم'
             });
         }
 
-        res.download(foundPath, file.filename);
+        console.log(`✅ تم العثور على الملف: ${foundPath}`);
+        return res.download(foundPath, file.filename);
+
     } catch (error) {
         console.error('❌ خطأ في تحميل الملف:', error);
         res.status(500).json({
             success: false,
-            message: 'حدث خطأ في تحميل الملف'
+            message: 'حدث خطأ في تحميل الملف',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 });
 
-// ✅ تحديث حالة الطلب
+// ============================================================
+// تحديث حالة الطلب
+// ============================================================
 app.put('/api/orders/:id/status', protect, async (req, res) => {
     try {
         const { status } = req.body;
@@ -1044,7 +1047,9 @@ app.put('/api/orders/:id/status', protect, async (req, res) => {
     }
 });
 
-// ✅ جلب معلومات الملفات
+// ============================================================
+// جلب معلومات الملفات
+// ============================================================
 app.get('/api/orders/:orderId/files-info', protect, async (req, res) => {
     try {
         const order = await Order.findById(req.params.orderId);
@@ -1093,7 +1098,9 @@ app.get('/api/orders/:orderId/files-info', protect, async (req, res) => {
     }
 });
 
-// ✅ حذف ملف
+// ============================================================
+// حذف ملف
+// ============================================================
 app.delete('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
     try {
         const order = await Order.findById(req.params.orderId);
@@ -1152,7 +1159,9 @@ app.delete('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) =>
     }
 });
 
+// ============================================================
 // تعيين خبير للطلب
+// ============================================================
 app.put('/api/orders/:id/assign-expert', protect, authorize('admin'), async (req, res) => {
     try {
         const { expertId, notes } = req.body;
@@ -1356,4 +1365,5 @@ app.listen(PORT, () => {
     console.log(`✅ الخادم يعمل على http://localhost:${PORT}`);
     console.log(`📁 مجلد الفيديوهات: ${videosDir}`);
     console.log(`📁 مجلد الطلبات: ${ordersDir}`);
+    console.log(`🌐 بيئة التشغيل: ${process.env.NODE_ENV || 'development'}`);
 });
