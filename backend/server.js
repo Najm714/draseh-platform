@@ -44,12 +44,70 @@ if (!fs.existsSync(ordersDir)) {
     console.log('📁 تم إنشاء مجلد orders');
 }
 
+console.log('📁 مسار uploads:', uploadsDir);
+console.log('📁 مسار videos:', videosDir);
+
 // ============================================================
 // خدمة الملفات الثابتة (Uploads)
 // ============================================================
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/uploads/videos', express.static(path.join(__dirname, 'uploads', 'videos')));
-app.use('/uploads/orders', express.static(path.join(__dirname, 'uploads', 'orders')));
+app.use('/uploads', express.static(uploadsDir));
+app.use('/uploads/videos', express.static(videosDir));
+app.use('/uploads/orders', express.static(ordersDir));
+
+// ============================================================
+// مسار مباشر للفيديوهات (حل بديل)
+// ============================================================
+app.get('/uploads/videos/:filename', (req, res) => {
+    const filename = req.params.filename;
+    const filePath = path.join(videosDir, filename);
+    
+    console.log('📁 محاولة تحميل:', filePath);
+    
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        // محاولة البحث في مسار آخر
+        const altPath = path.join(__dirname, '../uploads/videos', filename);
+        console.log('📁 محاولة بديلة:', altPath);
+        
+        if (fs.existsSync(altPath)) {
+            res.sendFile(altPath);
+        } else {
+            console.error('❌ الملف غير موجود:', filename);
+            res.status(404).json({
+                success: false,
+                message: 'الملف غير موجود',
+                filename: filename
+            });
+        }
+    }
+});
+
+// ============================================================
+// مسار بديل للفيديوهات (بسيط)
+// ============================================================
+app.get('/video/:filename', (req, res) => {
+    const filePath = path.join(videosDir, req.params.filename);
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).json({
+            success: false,
+            message: 'الملف غير موجود'
+        });
+    }
+});
+
+// ============================================================
+// التحقق من وجود الملفات عند بدء التشغيل
+// ============================================================
+if (fs.existsSync(videosDir)) {
+    const files = fs.readdirSync(videosDir);
+    console.log('📁 محتويات مجلد الفيديوهات:', files);
+    console.log(`📁 عدد الملفات: ${files.length}`);
+} else {
+    console.log('⚠️ مجلد الفيديوهات غير موجود');
+}
 
 // ============================================================
 // الاتصال بقاعدة البيانات
@@ -240,12 +298,12 @@ app.get('/api/auth/me', protect, async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
+
 // ============================================================
-// 2. مسارات الفيديوهات (VIDEOS) - الترتيب الصحيح
+// 2. مسارات الفيديوهات (VIDEOS)
 // ============================================================
-// ============================================================
-// رفع فيديو جديد - النسخة المصححة
-// ============================================================
+
+// رفع فيديو جديد
 app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => {
     try {
         console.log('📁 استلام فيديو:', req.file);
@@ -267,10 +325,10 @@ app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => 
             });
         }
 
-        // ✅ استخراج اسم الملف فقط من المسار الكامل
+        // استخراج اسم الملف فقط
         const fileName = req.file.filename;
         
-        // ✅ بناء المسار العام للملف (وليس المسار الكامل للنظام)
+        // بناء المسار العام
         const publicPath = `/uploads/videos/${fileName}`;
 
         console.log('📁 اسم الملف:', fileName);
@@ -283,8 +341,8 @@ app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => 
             specialtyName: specialtyName || '',
             universityName: universityName || '',
             description: description || '',
-            fileName: fileName,                          // ✅ اسم الملف فقط
-            filePath: publicPath,                        // ✅ المسار العام
+            fileName: fileName,
+            filePath: publicPath,
             fileSize: (req.file.size / (1024 * 1024)).toFixed(2) + ' MB',
             fileType: req.file.mimetype,
             uploadDate: new Date(),
@@ -309,7 +367,8 @@ app.post('/api/videos/upload', uploadVideo.single('video'), async (req, res) => 
         });
     }
 });
-// ✅ 2. جلب جميع الفيديوهات
+
+// جلب جميع الفيديوهات
 app.get('/api/videos/all', async (req, res) => {
     try {
         const videos = await Video.find().sort({ uploadDate: -1 });
@@ -324,7 +383,7 @@ app.get('/api/videos/all', async (req, res) => {
     }
 });
 
-// ✅ 3. جلب فيديوهات مادة معينة
+// جلب فيديوهات مادة معينة
 app.get('/api/videos/subject/:subjectId', async (req, res) => {
     try {
         const videos = await Video.find({ subjectId: parseInt(req.params.subjectId) });
@@ -339,7 +398,7 @@ app.get('/api/videos/subject/:subjectId', async (req, res) => {
     }
 });
 
-// ✅ 4. جلب فيديو محدد (يجب أن يكون بعد جميع المسارات المحددة)
+// جلب فيديو محدد
 app.get('/api/videos/:id', async (req, res) => {
     try {
         const video = await Video.findById(req.params.id);
@@ -355,7 +414,6 @@ app.get('/api/videos/:id', async (req, res) => {
         });
     } catch (error) {
         console.error('❌ خطأ في جلب الفيديو:', error);
-        // ✅ معالجة خطأ CastError
         if (error.name === 'CastError' || error.kind === 'ObjectId') {
             return res.status(404).json({
                 success: false,
@@ -366,7 +424,7 @@ app.get('/api/videos/:id', async (req, res) => {
     }
 });
 
-// ✅ 5. تحديث عدد المشاهدات
+// تحديث عدد المشاهدات
 app.put('/api/videos/:id/views', async (req, res) => {
     try {
         const video = await Video.findByIdAndUpdate(
@@ -396,7 +454,7 @@ app.put('/api/videos/:id/views', async (req, res) => {
     }
 });
 
-// ✅ 6. حذف فيديو (للمدير فقط)
+// حذف فيديو (للمدير فقط)
 app.delete('/api/videos/:id', protect, authorize('admin'), async (req, res) => {
     try {
         const video = await Video.findById(req.params.id);
@@ -407,8 +465,13 @@ app.delete('/api/videos/:id', protect, authorize('admin'), async (req, res) => {
             });
         }
 
-        if (video.filePath && fs.existsSync(video.filePath)) {
-            fs.unlinkSync(video.filePath);
+        // حذف الملف من الخادم
+        if (video.fileName) {
+            const filePath = path.join(videosDir, video.fileName);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+                console.log(`🗑️ تم حذف الملف: ${filePath}`);
+            }
         }
 
         await video.deleteOne();
@@ -545,7 +608,6 @@ app.get('/api/orders/admin/all', protect, authorize('admin'), async (req, res) =
             })
             .sort({ createdAt: -1 });
         
-        // معالجة الطلبات التي ليس لها مستخدم
         const processedOrders = orders.map(order => {
             const orderObj = order.toObject();
             if (!orderObj.user) {
@@ -797,7 +859,6 @@ app.delete('/api/orders/:id', protect, async (req, res) => {
             });
         }
 
-        // حذف الملفات المرتبطة بالطلب من الخادم
         if (order.files && order.files.length > 0) {
             for (const file of order.files) {
                 if (file.filePath && fs.existsSync(file.filePath)) {
@@ -911,9 +972,7 @@ app.get('/api/orders/:orderId/files', protect, async (req, res) => {
     }
 });
 
-// ============================================================
-// تحميل ملف معين - النسخة النهائية المحسنة
-// ============================================================
+// تحميل ملف معين
 app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
     try {
         const order = await Order.findById(req.params.orderId);
@@ -947,43 +1006,46 @@ app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
 
         const file = order.files[fileIndex];
         
-        // 1. محاولة استخدام المسار المخزن مباشرة
-        if (file.filePath && fs.existsSync(file.filePath)) {
-            console.log(`✅ تحميل من المسار المخزن: ${file.filePath}`);
-            return res.download(file.filePath, file.filename);
-        }
-
-        // 2. البحث في مجلد uploads
         const possiblePaths = [];
-        const uploadsDir = path.join(__dirname, 'uploads');
         
-        // أسماء محتملة للملف
+        if (file.filePath) {
+            possiblePaths.push(file.filePath);
+        }
+        
+        const uploadsDir = path.join(__dirname, 'uploads');
+        const ordersUploadsDir = path.join(__dirname, 'uploads', 'orders');
+        
         const possibleNames = [
             file.filename,
             file.fileId,
             `${req.params.orderId}_${file.filename}`,
             `${req.params.orderId}_${file.fileId}`
         ];
-
-        // البحث في جميع مجلدات uploads
+        
         if (fs.existsSync(uploadsDir)) {
-            const searchDirs = [uploadsDir, path.join(uploadsDir, 'orders')];
-            for (const dir of searchDirs) {
-                if (fs.existsSync(dir)) {
-                    const files = fs.readdirSync(dir);
-                    for (const f of files) {
-                        for (const name of possibleNames) {
-                            if (name && (f.includes(name) || name.includes(f))) {
-                                possiblePaths.push(path.join(dir, f));
-                                break;
-                            }
-                        }
+            const files = fs.readdirSync(uploadsDir);
+            for (const f of files) {
+                for (const name of possibleNames) {
+                    if (f.includes(name) || name.includes(f)) {
+                        possiblePaths.push(path.join(uploadsDir, f));
+                        break;
                     }
                 }
             }
         }
-
-        // 3. البحث عن مسار صحيح
+        
+        if (fs.existsSync(ordersUploadsDir)) {
+            const files = fs.readdirSync(ordersUploadsDir);
+            for (const f of files) {
+                for (const name of possibleNames) {
+                    if (f.includes(name) || name.includes(f)) {
+                        possiblePaths.push(path.join(ordersUploadsDir, f));
+                        break;
+                    }
+                }
+            }
+        }
+        
         let foundPath = null;
         for (const p of possiblePaths) {
             if (fs.existsSync(p)) {
@@ -991,36 +1053,25 @@ app.get('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
                 break;
             }
         }
-
+        
         if (!foundPath) {
-            console.error(`❌ الملف غير موجود:`, {
-                orderId: req.params.orderId,
-                filename: file.filename,
-                fileId: file.fileId,
-                searchedPaths: possiblePaths
-            });
             return res.status(404).json({
                 success: false,
                 message: 'الملف غير موجود على الخادم'
             });
         }
 
-        console.log(`✅ تم العثور على الملف: ${foundPath}`);
-        return res.download(foundPath, file.filename);
-
+        res.download(foundPath, file.filename);
     } catch (error) {
         console.error('❌ خطأ في تحميل الملف:', error);
         res.status(500).json({
             success: false,
-            message: 'حدث خطأ في تحميل الملف',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            message: 'حدث خطأ في تحميل الملف'
         });
     }
 });
 
-// ============================================================
 // تحديث حالة الطلب
-// ============================================================
 app.put('/api/orders/:id/status', protect, async (req, res) => {
     try {
         const { status } = req.body;
@@ -1041,7 +1092,6 @@ app.put('/api/orders/:id/status', protect, async (req, res) => {
             });
         }
 
-        // التحقق من الصلاحيات
         const isAuthorized = 
             req.user.role === 'admin' || 
             (req.user.role === 'expert' && order.assignedExpert && req.user.id === order.assignedExpert.toString());
@@ -1056,7 +1106,6 @@ app.put('/api/orders/:id/status', protect, async (req, res) => {
         order.status = status;
         await order.save();
 
-        // إعادة الطلب مع البيانات الكاملة
         const populatedOrder = await Order.findById(order._id)
             .populate('user', 'name email')
             .populate('assignedExpert', 'name email');
@@ -1075,9 +1124,7 @@ app.put('/api/orders/:id/status', protect, async (req, res) => {
     }
 });
 
-// ============================================================
 // جلب معلومات الملفات
-// ============================================================
 app.get('/api/orders/:orderId/files-info', protect, async (req, res) => {
     try {
         const order = await Order.findById(req.params.orderId);
@@ -1126,9 +1173,7 @@ app.get('/api/orders/:orderId/files-info', protect, async (req, res) => {
     }
 });
 
-// ============================================================
 // حذف ملف
-// ============================================================
 app.delete('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) => {
     try {
         const order = await Order.findById(req.params.orderId);
@@ -1161,7 +1206,6 @@ app.delete('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) =>
 
         const file = order.files[fileIndex];
         
-        // حذف الملف من الخادم
         if (file.filePath && fs.existsSync(file.filePath)) {
             try {
                 fs.unlinkSync(file.filePath);
@@ -1170,7 +1214,6 @@ app.delete('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) =>
             }
         }
 
-        // حذف الملف من قاعدة البيانات
         order.files.splice(fileIndex, 1);
         await order.save();
 
@@ -1187,9 +1230,7 @@ app.delete('/api/orders/:orderId/files/:fileIndex', protect, async (req, res) =>
     }
 });
 
-// ============================================================
 // تعيين خبير للطلب
-// ============================================================
 app.put('/api/orders/:id/assign-expert', protect, authorize('admin'), async (req, res) => {
     try {
         const { expertId, notes } = req.body;

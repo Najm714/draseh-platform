@@ -1,4 +1,4 @@
-// backend/fix-models.js
+// backend/fix-videos.js
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
@@ -13,43 +13,29 @@ console.log('🔗 محاولة الاتصال بقاعدة البيانات...')
 mongoose.connect(MONGO_URI)
     .then(() => {
         console.log('✅ تم الاتصال بقاعدة البيانات بنجاح');
-        fixModels();
+        fixVideos();
     })
     .catch(err => {
         console.error('❌ فشل الاتصال بقاعدة البيانات:', err.message);
         process.exit(1);
     });
 
-// استيراد النماذج
+// استيراد نموذج Video
 const Video = require('./models/Video');
-const Model = require('./models/Model');
-const Order = require('./models/Order');
-const User = require('./models/User');
 
-async function fixModels() {
+async function fixVideos() {
     try {
-        console.log('\n🔍 جاري فحص النماذج...');
+        console.log('\n🔍 جاري البحث عن الفيديوهات...');
         
-        // عرض إحصائيات
-        const videoCount = await Video.countDocuments();
-        const modelCount = await Model.countDocuments();
-        const orderCount = await Order.countDocuments();
-        const userCount = await User.countDocuments();
-        
-        console.log('\n📊 إحصائيات قاعدة البيانات:');
-        console.log(`  📹 الفيديوهات: ${videoCount}`);
-        console.log(`  📄 النماذج: ${modelCount}`);
-        console.log(`  📋 الطلبات: ${orderCount}`);
-        console.log(`  👤 المستخدمين: ${userCount}`);
-        
-        // إصلاح مسارات الفيديوهات
-        console.log('\n🔧 جاري إصلاح مسارات الفيديوهات...');
         const videos = await Video.find({});
-        let fixedCount = 0;
+        console.log(`📹 تم العثور على ${videos.length} فيديو`);
         
+        let count = 0;
+
         for (const video of videos) {
             let needsUpdate = false;
             
+            // إصلاح المسار
             if (video.filePath && (
                 video.filePath.includes('/opt/render/') ||
                 video.filePath.includes('backend/uploads/') ||
@@ -63,6 +49,7 @@ async function fixModels() {
                 }
             }
             
+            // إضافة fileName إذا كان مفقوداً
             if (!video.fileName && video.filePath) {
                 const fileName = video.filePath.split('/').pop().split('\\').pop();
                 if (fileName) {
@@ -74,11 +61,20 @@ async function fixModels() {
             
             if (needsUpdate) {
                 await video.save();
-                fixedCount++;
+                count++;
             }
         }
+
+        console.log(`\n✅ تم تحديث ${count} فيديو بنجاح!`);
         
-        console.log(`\n✅ تم إصلاح ${fixedCount} فيديو`);
+        // عرض النتائج
+        const updatedVideos = await Video.find({});
+        console.log('\n📋 الفيديوهات بعد التحديث:');
+        updatedVideos.forEach(v => {
+            console.log(`  📹 ${v.title}`);
+            console.log(`     📁 fileName: ${v.fileName}`);
+            console.log(`     📁 filePath: ${v.filePath}`);
+        });
         
         console.log('\n✅ تم إكمال الإصلاح بنجاح!');
         process.exit(0);
